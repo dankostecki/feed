@@ -65,7 +65,9 @@ export default function Terminal() {
   const [errors,         setErrors]        = useState<{ feed: string; message: string }[]>([])
   const [initialLoaded,  setInitialLoaded] = useState(false)
   const [settingsOpen,   setSettingsOpen]  = useState(false)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [searchQuery,    setSearchQuery]   = useState('')
+  const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
+  const searchRef    = useRef<HTMLInputElement>(null)
 
   // Restore persisted state
   useEffect(() => {
@@ -129,13 +131,34 @@ export default function Terminal() {
   function clearBookmarks() { setBookmarkIds(new Set()); try { localStorage.removeItem(BOOKMARK_KEY)  } catch {} }
   function clearAll()       { clearRead(); clearBookmarks(); try { localStorage.removeItem(VIEW_KEY); localStorage.removeItem(THEME_KEY) } catch {} }
 
+  // Focus search on Ctrl+K or /  (when not typing in another input)
+  useEffect(() => {
+    function handler(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); searchRef.current?.focus() }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus() }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  // ── Search helper ──
+  function matchesSearch(item: NewsItem, q: string): boolean {
+    if (!q) return true
+    const lq = q.toLowerCase()
+    return item.title.toLowerCase().includes(lq) || item.source.toLowerCase().includes(lq) || item.feedLabel.toLowerCase().includes(lq)
+  }
+
   // ── Derived data ──
+  const q = searchQuery.trim()
+
   const gridFiltered = (() => {
-    if (sourceFilter === 'SAVED') return items.filter((i) => bookmarkIds.has(i.id))
+    if (sourceFilter === 'SAVED') return items.filter((i) => bookmarkIds.has(i.id) && matchesSearch(i, q))
     return items.filter((item) => {
       if (sourceFilter !== 'ALL' && item.source !== (sourceFilter as Source)) return false
       if (sourceFilter !== 'ALL' && subFilters.size > 0 && !subFilters.has(item.feedLabel)) return false
-      return true
+      return matchesSearch(item, q)
     })
   })()
 
@@ -269,7 +292,51 @@ export default function Terminal() {
           </div>
         </div>
 
-        {/* Strip 2: GRID filters */}
+        {/* Strip 2: Search — visible in both GRID and COLUMNS */}
+        <div className="flex items-center gap-2 px-3 sm:px-4 py-2" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+          {/* Search icon */}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)', flexShrink: 0 }}>
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+
+          <input
+            ref={searchRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Escape') { setSearchQuery(''); searchRef.current?.blur() } }}
+            placeholder="SEARCH… (Ctrl+K or /)"
+            className="flex-1 bg-transparent font-mono text-[11px] outline-none min-w-0"
+            style={{
+              color: 'var(--text-hi)',
+              caretColor: 'var(--src-NBP)',
+              '::placeholder': { color: 'var(--text-dim)' },
+            } as React.CSSProperties}
+            spellCheck={false}
+            autoComplete="off"
+          />
+
+          {/* Match count */}
+          {q && (
+            <span className="font-mono text-[10px] shrink-0" style={{ color: gridFiltered.length > 0 ? 'var(--src-NBP)' : 'var(--src-FED-fomc)' }}>
+              {isColumns
+                ? `${items.filter((i) => matchesSearch(i, q)).length} hits`
+                : `${gridFiltered.length} hits`}
+            </span>
+          )}
+
+          {/* Clear */}
+          {q && (
+            <button onClick={() => { setSearchQuery(''); searchRef.current?.focus() }}
+              className="font-mono text-[11px] shrink-0 transition-opacity"
+              style={{ color: 'var(--text-ui)' }}>
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Strip 3: GRID filters */}
         {!isColumns && (
           <div className="px-3 sm:px-4 py-2.5">
             <FilterBar source={sourceFilter} subFilters={subFilters} counts={counts} subCounts={subCounts}
@@ -277,7 +344,7 @@ export default function Terminal() {
           </div>
         )}
 
-        {/* Strip 3: COLUMNS mobile tab switcher */}
+        {/* Strip 4: COLUMNS mobile tab switcher */}
         {isColumns && (
           <div className="flex md:hidden" style={{ borderBottom: '1px solid var(--border)' }}>
             {SOURCES.map((src) => {
@@ -300,7 +367,7 @@ export default function Terminal() {
           </div>
         )}
 
-        {/* Strip 4: result count (GRID only) */}
+        {/* Strip 5: result count (GRID only) */}
         {!isColumns && (
           <div className="flex items-center justify-between px-3 sm:px-4 py-1" style={{ borderTop: '1px solid var(--border-dim)', backgroundColor: 'var(--bg)' }}>
             <span className="text-[10px] font-mono" style={{ color: 'var(--text-ui)' }}>
@@ -337,6 +404,7 @@ export default function Terminal() {
                 onRead={markAsRead}
                 onBookmark={toggleBookmark}
                 onSubFilterToggle={(lbl) => toggleColSubFilter(src, lbl)}
+              searchQuery={q}
               />
             </div>
           ))}

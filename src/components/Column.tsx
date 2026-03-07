@@ -13,6 +13,7 @@ interface Props {
   bookmarkIds: Set<string>
   loading: boolean
   initialLoaded: boolean
+  searchQuery: string
   onRead: (id: string) => void
   onBookmark: (id: string) => void
   onSubFilterToggle: (label: string) => void
@@ -24,15 +25,20 @@ const SOURCE_FULL: Record<string, string> = {
   NBP: 'Narodowy Bank Polski',
 }
 
-export default function Column({ source, items, subFilters, subCounts, readIds, bookmarkIds, loading, initialLoaded, onRead, onBookmark, onSubFilterToggle }: Props) {
+export default function Column({ source, items, subFilters, subCounts, readIds, bookmarkIds, loading, initialLoaded, searchQuery, onRead, onBookmark, onSubFilterToggle }: Props) {
   const color    = SOURCE_COLOR[source]   // CSS var
   const bg       = SOURCE_BG[source]
   const bd       = SOURCE_BD[source]
   const subfeeds = SOURCE_SUBFEEDS[source] ?? []
 
-  const visible = subFilters.size > 0
-    ? items.filter((i) => subFilters.has(i.feedLabel))
-    : items
+  const visible = (() => {
+    let base = subFilters.size > 0 ? items.filter((i) => subFilters.has(i.feedLabel)) : items
+    if (searchQuery) {
+      const lq = searchQuery.toLowerCase()
+      base = base.filter((i) => i.title.toLowerCase().includes(lq) || i.feedLabel.toLowerCase().includes(lq))
+    }
+    return base
+  })()
 
   function clearFilters() { subFilters.forEach((l) => onSubFilterToggle(l)) }
 

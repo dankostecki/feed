@@ -161,6 +161,8 @@ body {
 
 ::selection { background: rgba(59,130,246,0.3); color: var(--text-hi); }
 
+input::placeholder { color: var(--text-dim); }
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
