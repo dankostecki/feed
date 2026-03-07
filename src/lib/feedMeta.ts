@@ -1,50 +1,57 @@
 export interface FeedMeta {
-  color: string   // hex accent color unique to this feed stream
-  symbol: string  // unicode shape for quick visual recognition
-  label: string   // short display label
-  bg: string      // translucent bg for tags
+  color: string   // CSS var — resolves to neon (dark) or deep (light)
+  bg: string      // CSS var — translucent background for tag
+  border: string  // CSS var — translucent border for tag
+  symbol: string
+  label: string
   source: 'FED' | 'ECB' | 'NBP'
 }
 
-// 9 distinct visual identities — warm spectrum for FED, cool for ECB, green for NBP
 export const FEED_META: Record<string, FeedMeta> = {
-  // FED — amber / orange / red / yellow
-  'FED::PRESS':   { color: '#f59e0b', symbol: '◉', label: 'FED · PRESS',   bg: 'rgba(245,158,11,0.10)',   source: 'FED' },
-  'FED::SPEECH':  { color: '#fb923c', symbol: '◎', label: 'FED · SPEECH',  bg: 'rgba(251,146,60,0.10)',   source: 'FED' },
-  'FED::FOMC':    { color: '#f87171', symbol: '◆', label: 'FED · FOMC',    bg: 'rgba(248,113,113,0.10)',  source: 'FED' },
-  'FED::POLICY':  { color: '#fde047', symbol: '▷', label: 'FED · POLICY',  bg: 'rgba(253,224,71,0.10)',   source: 'FED' },
-
-  // ECB — sky / indigo / violet / cyan
-  'ECB::PRESS':   { color: '#38bdf8', symbol: '◉', label: 'ECB · PRESS',   bg: 'rgba(56,189,248,0.10)',   source: 'ECB' },
-  'ECB::SPEECH':  { color: '#818cf8', symbol: '◎', label: 'ECB · SPEECH',  bg: 'rgba(129,140,248,0.10)',  source: 'ECB' },
-  'ECB::BLOG':    { color: '#a78bfa', symbol: '◈', label: 'ECB · BLOG',    bg: 'rgba(167,139,250,0.10)',  source: 'ECB' },
-  'ECB::PUB':     { color: '#22d3ee', symbol: '▣', label: 'ECB · PUB',     bg: 'rgba(34,211,238,0.10)',   source: 'ECB' },
-
-  // NBP — emerald
-  'NBP::NEWS':    { color: '#34d399', symbol: '●', label: 'NBP · NEWS',    bg: 'rgba(52,211,153,0.10)',   source: 'NBP' },
+  'FED::PRESS':  { color: 'var(--feed-fed-press)',  bg: 'var(--feed-fed-press-bg)',  border: 'var(--feed-fed-press-bd)',  symbol: '◉', label: 'FED · PRESS',  source: 'FED' },
+  'FED::SPEECH': { color: 'var(--feed-fed-speech)', bg: 'var(--feed-fed-speech-bg)', border: 'var(--feed-fed-speech-bd)', symbol: '◎', label: 'FED · SPEECH', source: 'FED' },
+  'FED::FOMC':   { color: 'var(--feed-fed-fomc)',   bg: 'var(--feed-fed-fomc-bg)',   border: 'var(--feed-fed-fomc-bd)',   symbol: '◆', label: 'FED · FOMC',   source: 'FED' },
+  'FED::POLICY': { color: 'var(--feed-fed-policy)', bg: 'var(--feed-fed-policy-bg)', border: 'var(--feed-fed-policy-bd)', symbol: '▷', label: 'FED · POLICY', source: 'FED' },
+  'ECB::PRESS':  { color: 'var(--feed-ecb-press)',  bg: 'var(--feed-ecb-press-bg)',  border: 'var(--feed-ecb-press-bd)',  symbol: '◉', label: 'ECB · PRESS',  source: 'ECB' },
+  'ECB::SPEECH': { color: 'var(--feed-ecb-speech)', bg: 'var(--feed-ecb-speech-bg)', border: 'var(--feed-ecb-speech-bd)', symbol: '◎', label: 'ECB · SPEECH', source: 'ECB' },
+  'ECB::BLOG':   { color: 'var(--feed-ecb-blog)',   bg: 'var(--feed-ecb-blog-bg)',   border: 'var(--feed-ecb-blog-bd)',   symbol: '◈', label: 'ECB · BLOG',   source: 'ECB' },
+  'ECB::PUB':    { color: 'var(--feed-ecb-pub)',    bg: 'var(--feed-ecb-pub-bg)',    border: 'var(--feed-ecb-pub-bd)',    symbol: '▣', label: 'ECB · PUB',    source: 'ECB' },
+  'NBP::NEWS':   { color: 'var(--feed-nbp-news)',   bg: 'var(--feed-nbp-news-bg)',   border: 'var(--feed-nbp-news-bd)',   symbol: '●', label: 'NBP · NEWS',   source: 'NBP' },
 }
 
-// Sub-feed labels grouped by source — used to render channel chips
 export const SOURCE_SUBFEEDS: Record<string, string[]> = {
   FED: ['PRESS', 'SPEECH', 'FOMC', 'POLICY'],
   ECB: ['PRESS', 'SPEECH', 'BLOG', 'PUB'],
   NBP: ['NEWS'],
 }
 
-// Primary accent color per source (for source-level buttons/borders)
+// All return CSS vars — resolved correctly for dark AND light by the browser
 export const SOURCE_COLOR: Record<string, string> = {
-  FED: '#f59e0b',
-  ECB: '#38bdf8',
-  NBP: '#34d399',
+  FED: 'var(--src-FED)',
+  ECB: 'var(--src-ECB)',
+  NBP: 'var(--src-NBP)',
+}
+
+export const SOURCE_BG: Record<string, string> = {
+  FED: 'var(--src-FED-bg)',
+  ECB: 'var(--src-ECB-bg)',
+  NBP: 'var(--src-NBP-bg)',
+}
+
+export const SOURCE_BD: Record<string, string> = {
+  FED: 'var(--src-FED-bd)',
+  ECB: 'var(--src-ECB-bd)',
+  NBP: 'var(--src-NBP-bd)',
 }
 
 export function getFeedMeta(source: string, feedLabel: string): FeedMeta {
   return (
     FEED_META[`${source}::${feedLabel}`] ?? {
-      color: '#6b7280',
+      color: 'var(--text-ui)',
+      bg: 'rgba(107,114,128,0.10)',
+      border: 'rgba(107,114,128,0.25)',
       symbol: '○',
       label: `${source} · ${feedLabel}`,
-      bg: 'rgba(107,114,128,0.10)',
       source: source as 'FED' | 'ECB' | 'NBP',
     }
   )

@@ -39,15 +39,16 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
       onClick={handleClick}
       className="group relative flex flex-col cursor-pointer select-none transition-colors duration-150"
       style={{
+        // Read: blend into bg, no surface lift, neutral border
+        // Unread: surface bg, coloured left accent
         backgroundColor: read ? 'var(--bg)' : 'var(--surface)',
         border: '1px solid var(--border)',
-        borderLeft: `3px solid ${read ? 'var(--border)' : meta.color}`,
-        opacity: read ? 0.62 : 1,
+        borderLeft: `3px solid ${read ? 'var(--border-dim)' : meta.color}`,
       }}
       onMouseEnter={(e) => { if (!read) e.currentTarget.style.backgroundColor = 'var(--hover)' }}
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = read ? 'var(--bg)' : 'var(--surface)' }}
     >
-      {/* Top accent line */}
+      {/* Coloured top accent — unread only */}
       {!read && (
         <div style={{ height: 1, background: `linear-gradient(90deg, ${meta.color}50, transparent 65%)` }} />
       )}
@@ -57,7 +58,11 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
         <div className="flex items-center gap-2">
           <span
             className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold tracking-widest rounded-sm border font-mono shrink-0"
-            style={{ color: meta.color, backgroundColor: meta.bg, borderColor: `${meta.color}35` }}
+            style={{
+              color: read ? 'var(--text-ui)' : meta.color,
+              backgroundColor: read ? 'transparent' : meta.bg,
+              borderColor: read ? 'var(--border)' : meta.border,
+            }}
           >
             <span style={{ fontSize: 9 }}>{meta.symbol}</span>
             {meta.label}
@@ -65,16 +70,17 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
 
           <div className="flex-1" />
 
-          {/* Bookmark icon button */}
+          {/* Bookmark */}
           <button
             onClick={handleBookmark}
             title={bookmarked ? 'Remove bookmark' : 'Save for later'}
             className="shrink-0 flex items-center justify-center transition-all duration-150 hover:scale-110"
-            style={{ color: bookmarked ? '#f59e0b' : 'var(--text-dim)' }}
+            style={{ color: bookmarked ? 'var(--src-FED)' : 'var(--text-dim)' }}
           >
             <BookmarkIcon filled={bookmarked} />
           </button>
 
+          {/* Time */}
           <time
             dateTime={item.pubDate.toISOString()}
             title={abs}
@@ -85,15 +91,15 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
           </time>
         </div>
 
-        {/* Title */}
+        {/* Title — dimmer when read, full contrast when unread */}
         <h3
           className="text-[13px] font-semibold leading-snug line-clamp-3 font-mono"
-          style={{ color: read ? 'var(--text-dim)' : 'var(--text-hi)' }}
+          style={{ color: read ? 'var(--text-lo)' : 'var(--text-hi)' }}
         >
           {item.title}
         </h3>
 
-        {/* Absolute timestamp */}
+        {/* Timestamp */}
         <div
           className="pt-1.5 mt-auto font-mono text-[10px]"
           style={{ borderTop: '1px solid var(--border-dim)', color: 'var(--text-lo)' }}
@@ -102,10 +108,12 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
         </div>
       </div>
 
-      {read && !bookmarked && (
-        <span className="absolute top-2 right-2 text-[9px] font-mono tracking-widest" style={{ color: 'var(--text-dim)' }}>
-          READ
-        </span>
+      {/* Bookmark gold accent on read cards */}
+      {bookmarked && (
+        <div
+          className="absolute top-0 right-0 bottom-0 w-0.5"
+          style={{ backgroundColor: 'var(--feed-fed-press)' }}
+        />
       )}
     </article>
   )

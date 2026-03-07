@@ -4,40 +4,140 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Theme variables ─────────────────────────────────────────────────────── */
+/* ── UI theme variables ──────────────────────────────────────────────────── */
 :root {
-  /* Dark mode — higher contrast across the board */
   --bg:          #070c12;
   --surface:     #0c1928;
   --hover:       #101f30;
   --border:      #1a2d42;
   --border-dim:  #122038;
-  --text-hi:     #dce8f4;   /* titles — near white */
-  --text-md:     #8aafc8;   /* secondary info */
-  --text-lo:     #6690b0;   /* timestamps, muted */
-  --text-ui:     #7090ac;   /* UI controls */
-  --text-dim:    #3a5570;   /* very faint */
+  --text-hi:     #dce8f4;
+  --text-md:     #8aafc8;
+  --text-lo:     #6690b0;
+  --text-ui:     #7090ac;
+  --text-dim:    #3a5570;
   --header-bg:   rgba(7,12,18,0.97);
   --status-bg:   rgba(7,12,18,0.97);
   --skeleton:    #0c1928;
   color-scheme:  dark;
+
+  /* ── Source accent colors — neon for dark mode ── */
+  --src-FED:    #f59e0b;
+  --src-FED-bg: rgba(245,158,11,0.09);
+  --src-FED-bd: rgba(245,158,11,0.30);
+
+  --src-ECB:    #38bdf8;
+  --src-ECB-bg: rgba(56,189,248,0.09);
+  --src-ECB-bd: rgba(56,189,248,0.30);
+
+  --src-NBP:    #34d399;
+  --src-NBP-bg: rgba(52,211,153,0.09);
+  --src-NBP-bd: rgba(52,211,153,0.30);
+
+  /* ── Feed-level accent colors ── */
+  --feed-fed-press:    #f59e0b;
+  --feed-fed-press-bg: rgba(245,158,11,0.10);
+  --feed-fed-press-bd: rgba(245,158,11,0.32);
+
+  --feed-fed-speech:    #fb923c;
+  --feed-fed-speech-bg: rgba(251,146,60,0.10);
+  --feed-fed-speech-bd: rgba(251,146,60,0.32);
+
+  --feed-fed-fomc:    #f87171;
+  --feed-fed-fomc-bg: rgba(248,113,113,0.10);
+  --feed-fed-fomc-bd: rgba(248,113,113,0.32);
+
+  --feed-fed-policy:    #fde047;
+  --feed-fed-policy-bg: rgba(253,224,71,0.10);
+  --feed-fed-policy-bd: rgba(253,224,71,0.32);
+
+  --feed-ecb-press:    #38bdf8;
+  --feed-ecb-press-bg: rgba(56,189,248,0.10);
+  --feed-ecb-press-bd: rgba(56,189,248,0.32);
+
+  --feed-ecb-speech:    #818cf8;
+  --feed-ecb-speech-bg: rgba(129,140,248,0.10);
+  --feed-ecb-speech-bd: rgba(129,140,248,0.32);
+
+  --feed-ecb-blog:    #a78bfa;
+  --feed-ecb-blog-bg: rgba(167,139,250,0.10);
+  --feed-ecb-blog-bd: rgba(167,139,250,0.32);
+
+  --feed-ecb-pub:    #22d3ee;
+  --feed-ecb-pub-bg: rgba(34,211,238,0.10);
+  --feed-ecb-pub-bd: rgba(34,211,238,0.32);
+
+  --feed-nbp-news:    #34d399;
+  --feed-nbp-news-bg: rgba(52,211,153,0.10);
+  --feed-nbp-news-bd: rgba(52,211,153,0.32);
 }
 
+/* ── Light mode ──────────────────────────────────────────────────────────── */
 [data-theme="light"] {
-  --bg:          #f0f4f8;
+  --bg:          #eef2f7;
   --surface:     #ffffff;
-  --hover:       #e4edf8;
-  --border:      #b8cce0;
-  --border-dim:  #d0e0ee;
-  --text-hi:     #0a1828;
-  --text-md:     #1e3d5c;
-  --text-lo:     #2e5070;
-  --text-ui:     #2e5070;
-  --text-dim:    #5a7a98;
-  --header-bg:   rgba(240,244,248,0.97);
-  --status-bg:   rgba(240,244,248,0.97);
-  --skeleton:    #e4edf8;
+  --hover:       #e2ecf6;
+  --border:      #b0c4da;
+  --border-dim:  #ccdaeb;
+  --text-hi:     #07111e;
+  --text-md:     #17304a;
+  --text-lo:     #254060;
+  --text-ui:     #254060;
+  --text-dim:    #547090;
+  --header-bg:   rgba(238,242,247,0.97);
+  --status-bg:   rgba(238,242,247,0.97);
+  --skeleton:    #dde8f4;
   color-scheme:  light;
+
+  /* Source — deep, high-contrast versions */
+  --src-FED:    #92400e;
+  --src-FED-bg: rgba(146,64,14,0.08);
+  --src-FED-bd: rgba(146,64,14,0.28);
+
+  --src-ECB:    #075985;
+  --src-ECB-bg: rgba(7,89,133,0.08);
+  --src-ECB-bd: rgba(7,89,133,0.28);
+
+  --src-NBP:    #065f46;
+  --src-NBP-bg: rgba(6,95,70,0.08);
+  --src-NBP-bd: rgba(6,95,70,0.28);
+
+  /* Feed — dark vivid variants for light bg */
+  --feed-fed-press:    #92400e;
+  --feed-fed-press-bg: rgba(146,64,14,0.08);
+  --feed-fed-press-bd: rgba(146,64,14,0.28);
+
+  --feed-fed-speech:    #9a3412;
+  --feed-fed-speech-bg: rgba(154,52,18,0.08);
+  --feed-fed-speech-bd: rgba(154,52,18,0.28);
+
+  --feed-fed-fomc:    #991b1b;
+  --feed-fed-fomc-bg: rgba(153,27,27,0.08);
+  --feed-fed-fomc-bd: rgba(153,27,27,0.28);
+
+  --feed-fed-policy:    #78350f;
+  --feed-fed-policy-bg: rgba(120,53,15,0.08);
+  --feed-fed-policy-bd: rgba(120,53,15,0.28);
+
+  --feed-ecb-press:    #075985;
+  --feed-ecb-press-bg: rgba(7,89,133,0.08);
+  --feed-ecb-press-bd: rgba(7,89,133,0.28);
+
+  --feed-ecb-speech:    #3730a3;
+  --feed-ecb-speech-bg: rgba(55,48,163,0.08);
+  --feed-ecb-speech-bd: rgba(55,48,163,0.28);
+
+  --feed-ecb-blog:    #5b21b6;
+  --feed-ecb-blog-bg: rgba(91,33,182,0.08);
+  --feed-ecb-blog-bd: rgba(91,33,182,0.28);
+
+  --feed-ecb-pub:    #155e75;
+  --feed-ecb-pub-bg: rgba(21,94,117,0.08);
+  --feed-ecb-pub-bd: rgba(21,94,117,0.28);
+
+  --feed-nbp-news:    #065f46;
+  --feed-nbp-news-bg: rgba(6,95,70,0.08);
+  --feed-nbp-news-bd: rgba(6,95,70,0.28);
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
@@ -59,10 +159,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-::selection {
-  background: rgba(59,130,246,0.3);
-  color: var(--text-hi);
-}
+::selection { background: rgba(59,130,246,0.3); color: var(--text-hi); }
 
 .line-clamp-2 {
   display: -webkit-box;

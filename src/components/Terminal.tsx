@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchAllFeeds, NewsItem, Source } from '@/lib/rss'
-import { SOURCE_COLOR } from '@/lib/feedMeta'
+import { SOURCE_COLOR, SOURCE_BG, SOURCE_BD } from '@/lib/feedMeta'
 import NewsCard from './NewsCard'
 import Column from './Column'
 import FilterBar, { Filter } from './FilterBar'
@@ -202,7 +202,7 @@ export default function Terminal() {
             <div className="hidden md:flex items-center gap-1 ml-1">
               {SOURCES.map((src) => (
                 <span key={src} className="text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm border"
-                  style={{ color: SOURCE_COLOR[src], borderColor: `${SOURCE_COLOR[src]}30`, backgroundColor: `${SOURCE_COLOR[src]}08` }}>
+                  style={{ color: SOURCE_COLOR[src], borderColor: SOURCE_BD[src], backgroundColor: SOURCE_BG[src] }}>
                   {src}
                 </span>
               ))}
@@ -289,7 +289,7 @@ export default function Terminal() {
                   style={
                     isActive
                       ? { color, backgroundColor: `${color}10`, borderBottom: `2px solid ${color}` }
-                      : { color: `${color}60`, borderBottom: '2px solid transparent' }
+                      : { color, opacity: 0.45, borderBottom: '2px solid transparent' }
                   }
                 >
                   {src}

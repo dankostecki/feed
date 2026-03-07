@@ -1,7 +1,7 @@
 'use client'
 
 import { Source } from '@/lib/rss'
-import { FEED_META, SOURCE_COLOR, SOURCE_SUBFEEDS } from '@/lib/feedMeta'
+import { FEED_META, SOURCE_COLOR, SOURCE_BG, SOURCE_BD, SOURCE_SUBFEEDS } from '@/lib/feedMeta'
 
 export type Filter = 'ALL' | Source | 'SAVED'
 
@@ -15,11 +15,11 @@ interface Props {
 }
 
 const SOURCES: { value: Filter; name: string }[] = [
-  { value: 'ALL',   name: 'ALL'   },
-  { value: 'FED',   name: 'FED'   },
-  { value: 'ECB',   name: 'ECB'   },
-  { value: 'NBP',   name: 'NBP'   },
-  { value: 'SAVED', name: '★ SAVED' },
+  { value: 'ALL',   name: 'ALL'     },
+  { value: 'FED',   name: 'FED'     },
+  { value: 'ECB',   name: 'ECB'     },
+  { value: 'NBP',   name: 'NBP'     },
+  { value: 'SAVED', name: '⊟ SAVED' },
 ]
 
 export default function FilterBar({ source, subFilters, counts, subCounts, onSourceChange, onSubFilterToggle }: Props) {
@@ -27,13 +27,15 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      {/* Level 1: Source buttons */}
+      {/* Level 1: source buttons */}
       <div className="flex items-center gap-1.5 flex-wrap">
         {SOURCES.map(({ value, name }) => {
           const isActive = source === value
           const isSaved  = value === 'SAVED'
-          const color    = isSaved ? '#f59e0b' : value === 'ALL' ? '#94a3b8' : SOURCE_COLOR[value]
-          const count    = counts[value] ?? 0
+          // CSS vars for FED/ECB/NBP; fixed for ALL/SAVED
+          const color = isSaved ? 'var(--feed-fed-press)' : value === 'ALL' ? 'var(--text-md)' : SOURCE_COLOR[value]
+          const bg    = isSaved ? 'var(--feed-fed-press-bg)' : value === 'ALL' ? 'transparent' : SOURCE_BG[value]
+          const bd    = isSaved ? 'var(--feed-fed-press-bd)' : value === 'ALL' ? 'var(--border)' : SOURCE_BD[value]
 
           return (
             <button
@@ -42,35 +44,30 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
               className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-100"
               style={
                 isActive
-                  ? { color, backgroundColor: `${color}15`, borderColor: `${color}55`, boxShadow: `0 0 8px ${color}20` }
-                  : { color: `${color}90`, borderColor: `${color}30`, backgroundColor: 'transparent' }
+                  ? { color, backgroundColor: bg, borderColor: bd }
+                  : { color, opacity: 0.5, borderColor: bd, backgroundColor: 'transparent' }
               }
             >
-              {/* Sub-feed symbol dots for FED/ECB/NBP */}
               {!isSaved && value !== 'ALL' && (
                 <span className="flex gap-0.5">
                   {(SOURCE_SUBFEEDS[value] ?? []).map((lbl) => {
                     const meta = FEED_META[`${value}::${lbl}`]
                     return (
-                      <span key={lbl} title={meta?.label} style={{ color: meta?.color, fontSize: '8px', opacity: isActive ? 1 : 0.55 }}>
+                      <span key={lbl} title={meta?.label} style={{ color: meta?.color, fontSize: '8px' }}>
                         {meta?.symbol}
                       </span>
                     )
                   })}
                 </span>
               )}
-
               {name}
-
-              <span className="font-mono tabular-nums" style={{ opacity: isActive ? 0.75 : 0.55, fontSize: '10px' }}>
-                {count}
-              </span>
+              <span className="tabular-nums" style={{ opacity: 0.7, fontSize: '10px' }}>{counts[value] ?? 0}</span>
             </button>
           )
         })}
       </div>
 
-      {/* Level 2: Sub-feed channel chips */}
+      {/* Level 2: sub-feed chips */}
       {subfeeds.length > 1 && (
         <div className="flex items-center gap-1 flex-wrap pl-0.5">
           <span className="text-[9px] font-mono tracking-widest uppercase mr-1" style={{ color: 'var(--text-ui)' }}>
@@ -88,11 +85,11 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
                 className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold tracking-wider border rounded-sm font-mono transition-all duration-100"
                 style={
                   isOn
-                    ? { color: meta.color, backgroundColor: meta.bg, borderColor: `${meta.color}50` }
-                    : { color: `${meta.color}90`, borderColor: `${meta.color}35`, backgroundColor: 'transparent' }
+                    ? { color: meta.color, backgroundColor: meta.bg, borderColor: meta.border }
+                    : { color: meta.color, opacity: 0.5, borderColor: meta.border, backgroundColor: 'transparent' }
                 }
               >
-                <span style={{ fontSize: '9px', opacity: isOn ? 1 : 0.7 }}>{meta.symbol}</span>
+                <span style={{ fontSize: '9px' }}>{meta.symbol}</span>
                 {lbl}
                 <span style={{ opacity: 0.6, fontSize: '9px' }}>{count}</span>
               </button>
