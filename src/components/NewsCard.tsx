@@ -42,7 +42,7 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
         backgroundColor: read ? 'var(--bg)' : 'var(--surface)',
         border: '1px solid var(--border)',
         borderLeft: `3px solid ${read ? 'var(--border)' : meta.color}`,
-        opacity: read ? 0.4 : 1,
+        opacity: read ? 0.62 : 1,
       }}
       onMouseEnter={(e) => { if (!read) e.currentTarget.style.backgroundColor = 'var(--hover)' }}
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = read ? 'var(--bg)' : 'var(--surface)' }}

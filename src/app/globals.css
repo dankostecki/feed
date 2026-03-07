@@ -6,22 +6,20 @@
 
 /* ── Theme variables ─────────────────────────────────────────────────────── */
 :root {
-  /* Dark (default) */
+  /* Dark mode — higher contrast across the board */
   --bg:          #070c12;
-  --surface:     #0b1520;
-  --hover:       #0f1e32;
-  --border:      #0f1d2c;
-  --border-dim:  #0a1520;
-  --text-hi:     #c8d8e8;   /* titles */
-  --text-md:     #607a94;   /* secondary info — clearly visible */
-  --text-lo:     #445e78;   /* timestamps, muted labels */
-  --text-ui:     #506880;   /* UI controls: GRID, AUTO, REFRESH */
-  --text-dim:    #2a3d52;   /* very faint hints */
+  --surface:     #0c1928;
+  --hover:       #101f30;
+  --border:      #1a2d42;
+  --border-dim:  #122038;
+  --text-hi:     #dce8f4;   /* titles — near white */
+  --text-md:     #8aafc8;   /* secondary info */
+  --text-lo:     #6690b0;   /* timestamps, muted */
+  --text-ui:     #7090ac;   /* UI controls */
+  --text-dim:    #3a5570;   /* very faint */
   --header-bg:   rgba(7,12,18,0.97);
   --status-bg:   rgba(7,12,18,0.97);
-  --scanline:    rgba(0,0,0,0.07);
-  --vignette:    rgba(0,0,0,0.50);
-  --skeleton:    #0b1520;
+  --skeleton:    #0c1928;
   color-scheme:  dark;
 }
 
@@ -29,18 +27,16 @@
   --bg:          #f0f4f8;
   --surface:     #ffffff;
   --hover:       #e4edf8;
-  --border:      #c4d4e4;
-  --border-dim:  #d8e6f0;
-  --text-hi:     #0d1e2e;
-  --text-md:     #2a4560;
-  --text-lo:     #3a5575;
-  --text-ui:     #3a5575;
-  --text-dim:    #6a85a0;
+  --border:      #b8cce0;
+  --border-dim:  #d0e0ee;
+  --text-hi:     #0a1828;
+  --text-md:     #1e3d5c;
+  --text-lo:     #2e5070;
+  --text-ui:     #2e5070;
+  --text-dim:    #5a7a98;
   --header-bg:   rgba(240,244,248,0.97);
   --status-bg:   rgba(240,244,248,0.97);
-  --scanline:    rgba(0,0,0,0.015);
-  --vignette:    rgba(0,0,0,0);
-  --skeleton:    #e8f0f8;
+  --skeleton:    #e4edf8;
   color-scheme:  light;
 }
 
@@ -68,7 +64,6 @@ body {
   color: var(--text-hi);
 }
 
-/* Line clamp */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

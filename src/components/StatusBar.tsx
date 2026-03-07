@@ -40,13 +40,13 @@ export default function StatusBar({ totalItems, visibleItems, loading, lastUpdat
         </div>
 
         <div className="flex items-center gap-3 font-mono text-[10px]">
+          {/* Some feeds failed to load (CORS / timeout) — shown as a quiet info dot */}
           {errors.length > 0 && (
             <span
-              style={{ color: 'rgba(248,113,113,0.65)', maxWidth: 260 }}
-              className="truncate"
-              title={errors.map((e) => `${e.feed}: ${e.message}`).join(' | ')}
+              style={{ color: 'var(--text-dim)', cursor: 'help' }}
+              title={`${errors.length} feed(s) couldn't be loaded (CORS / timeout — data from other sources is complete):\n${errors.map((e) => `• ${e.feed}: ${e.message}`).join('\n')}`}
             >
-              {errors.length} ERR
+              ○ {errors.length} źródła niedostępne
             </span>
           )}
           <span style={{ color: 'var(--text-dim)' }}>FED·ECB·NBP v1.0</span>
