@@ -73,8 +73,8 @@ export default function Column({ source, items, subFilters, subCounts, readIds, 
                     className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-wider border rounded-sm font-mono transition-all duration-100"
                     style={
                       isOn
-                        ? { color: meta.color, backgroundColor: meta.bg, borderColor: meta.border }
-                        : { color: meta.color, opacity: 0.5, borderColor: meta.border, backgroundColor: 'transparent' }
+                        ? { color: meta.color, backgroundColor: meta.bg, borderColor: meta.border, boxShadow: `0 0 6px ${meta.border}` }
+                        : { color: meta.color, backgroundColor: 'transparent', borderColor: meta.border }
                     }
                   >
                     <span style={{ fontSize: 8 }}>{meta.symbol}</span>

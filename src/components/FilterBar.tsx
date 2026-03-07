@@ -54,13 +54,12 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
                       color,
                       backgroundColor: bg,
                       borderColor: bd,
-                      boxShadow: value !== 'ALL' ? `0 0 10px ${bd}` : undefined,
+                      boxShadow: value !== 'ALL' ? `0 0 12px ${bd}, inset 0 0 8px ${bg}` : undefined,
                     }
                   : {
                       color,
                       backgroundColor: 'transparent',
                       borderColor: bd,
-                      opacity: 0.45,
                     }
               }
             >
@@ -97,8 +96,8 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
                 className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold tracking-wider border rounded-sm font-mono transition-all duration-100"
                 style={
                   isOn
-                    ? { color: meta.color, backgroundColor: meta.bg, borderColor: meta.border }
-                    : { color: meta.color, opacity: 0.45, borderColor: meta.border, backgroundColor: 'transparent' }
+                    ? { color: meta.color, backgroundColor: meta.bg, borderColor: meta.border, boxShadow: `0 0 8px ${meta.border}` }
+                    : { color: meta.color, backgroundColor: 'transparent', borderColor: meta.border }
                 }
               >
                 <span style={{ fontSize: '9px' }}>{meta.symbol}</span>
