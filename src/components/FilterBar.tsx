@@ -14,12 +14,21 @@ interface Props {
   onSubFilterToggle: (label: string) => void
 }
 
-const SOURCES: { value: Filter; name: string }[] = [
-  { value: 'ALL',   name: 'ALL'     },
-  { value: 'FED',   name: 'FED'     },
-  { value: 'ECB',   name: 'ECB'     },
-  { value: 'NBP',   name: 'NBP'     },
-  { value: 'SAVED', name: '⊟ SAVED' },
+// Each source button has a fixed accent — vivid in both dark and light
+const BTN: Record<string, { color: string; bg: string; bd: string }> = {
+  ALL:   { color: 'var(--text-hi)',       bg: 'var(--hover)',      bd: 'var(--border)'     },
+  FED:   { color: 'var(--src-FED)',       bg: 'var(--src-FED-bg)', bd: 'var(--src-FED-bd)' },
+  ECB:   { color: 'var(--src-ECB)',       bg: 'var(--src-ECB-bg)', bd: 'var(--src-ECB-bd)' },
+  NBP:   { color: 'var(--src-NBP)',       bg: 'var(--src-NBP-bg)', bd: 'var(--src-NBP-bd)' },
+  SAVED: { color: 'var(--feed-fed-press)', bg: 'var(--feed-fed-press-bg)', bd: 'var(--feed-fed-press-bd)' },
+}
+
+const SOURCES: { value: Filter; label: string }[] = [
+  { value: 'ALL',   label: 'ALL'   },
+  { value: 'FED',   label: 'FED'   },
+  { value: 'ECB',   label: 'ECB'   },
+  { value: 'NBP',   label: 'NBP'   },
+  { value: 'SAVED', label: 'SAVED' },
 ]
 
 export default function FilterBar({ source, subFilters, counts, subCounts, onSourceChange, onSubFilterToggle }: Props) {
@@ -27,50 +36,53 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      {/* Level 1: source buttons */}
+      {/* ── Source buttons — clean, no dots/symbols inside ── */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        {SOURCES.map(({ value, name }) => {
+        {SOURCES.map(({ value, label }) => {
           const isActive = source === value
-          const isSaved  = value === 'SAVED'
-          // CSS vars for FED/ECB/NBP; fixed for ALL/SAVED
-          const color = isSaved ? 'var(--feed-fed-press)' : value === 'ALL' ? 'var(--text-md)' : SOURCE_COLOR[value]
-          const bg    = isSaved ? 'var(--feed-fed-press-bg)' : value === 'ALL' ? 'transparent' : SOURCE_BG[value]
-          const bd    = isSaved ? 'var(--feed-fed-press-bd)' : value === 'ALL' ? 'var(--border)' : SOURCE_BD[value]
+          const { color, bg, bd } = BTN[value]
+          const count = counts[value] ?? 0
 
           return (
             <button
               key={value}
               onClick={() => onSourceChange(value)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-100"
+              className="flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-100"
               style={
                 isActive
-                  ? { color, backgroundColor: bg, borderColor: bd }
-                  : { color, opacity: 0.5, borderColor: bd, backgroundColor: 'transparent' }
+                  ? {
+                      color,
+                      backgroundColor: bg,
+                      borderColor: bd,
+                      boxShadow: value !== 'ALL' ? `0 0 10px ${bd}` : undefined,
+                    }
+                  : {
+                      color,
+                      backgroundColor: 'transparent',
+                      borderColor: bd,
+                      opacity: 0.45,
+                    }
               }
             >
-              {!isSaved && value !== 'ALL' && (
-                <span className="flex gap-0.5">
-                  {(SOURCE_SUBFEEDS[value] ?? []).map((lbl) => {
-                    const meta = FEED_META[`${value}::${lbl}`]
-                    return (
-                      <span key={lbl} title={meta?.label} style={{ color: meta?.color, fontSize: '8px' }}>
-                        {meta?.symbol}
-                      </span>
-                    )
-                  })}
-                </span>
-              )}
-              {name}
-              <span className="tabular-nums" style={{ opacity: 0.7, fontSize: '10px' }}>{counts[value] ?? 0}</span>
+              {label}
+              <span
+                className="tabular-nums font-mono"
+                style={{ fontSize: '10px', opacity: 0.75 }}
+              >
+                {count}
+              </span>
             </button>
           )
         })}
       </div>
 
-      {/* Level 2: sub-feed chips */}
+      {/* ── Sub-feed channel chips ── */}
       {subfeeds.length > 1 && (
         <div className="flex items-center gap-1 flex-wrap pl-0.5">
-          <span className="text-[9px] font-mono tracking-widest uppercase mr-1" style={{ color: 'var(--text-ui)' }}>
+          <span
+            className="text-[9px] font-mono tracking-widest uppercase mr-1"
+            style={{ color: 'var(--text-ui)' }}
+          >
             CHANNEL
           </span>
           {subfeeds.map((lbl) => {
@@ -86,12 +98,12 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
                 style={
                   isOn
                     ? { color: meta.color, backgroundColor: meta.bg, borderColor: meta.border }
-                    : { color: meta.color, opacity: 0.5, borderColor: meta.border, backgroundColor: 'transparent' }
+                    : { color: meta.color, opacity: 0.45, borderColor: meta.border, backgroundColor: 'transparent' }
                 }
               >
                 <span style={{ fontSize: '9px' }}>{meta.symbol}</span>
                 {lbl}
-                <span style={{ opacity: 0.6, fontSize: '9px' }}>{count}</span>
+                <span style={{ opacity: 0.65, fontSize: '9px' }}>{count}</span>
               </button>
             )
           })}
