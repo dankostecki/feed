@@ -31,7 +31,7 @@ export const FEEDS: FeedConfig[] = [
   { url: NBP_URL,                                              source: 'NBP', label: 'NEWS' },
 ]
 
-async function fetchWithTimeout(url: string, ms = 12000): Promise<Response> {
+async function fetchWithTimeout(url: string, ms = 20000): Promise<Response> {
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), ms)
   try {
@@ -60,6 +60,17 @@ const PROXY_FACTORIES: ((url: string) => { proxyUrl: string; extract: (res: Resp
   }),
 ]
 
+function looksLikeXML(text: string): boolean {
+  const t = text.trimStart()
+  if (t.startsWith('<?xml')) return true
+  if (t.startsWith('<rss')) return true
+  if (t.startsWith('<feed')) return true
+  // Reject HTML pages that proxies return on error
+  if (t.startsWith('<!DOCTYPE html') || t.startsWith('<html')) return false
+  // Accept other XML-ish content (Atom, namespaced feeds)
+  return t.startsWith('<') && !t.startsWith('<!DOCTYPE')
+}
+
 async function fetchXML(originalUrl: string): Promise<string> {
   const errors: string[] = []
 
@@ -69,8 +80,8 @@ async function fetchXML(originalUrl: string): Promise<string> {
       const res = await fetchWithTimeout(proxyUrl)
       if (!res.ok) { errors.push(`${res.status}`); continue }
       const text = await extract(res)
-      if (text && (text.trim().startsWith('<') || text.includes('<?xml'))) return text
-      errors.push('Not XML')
+      if (text && looksLikeXML(text)) return text
+      errors.push('Not XML (got HTML or empty)')
     } catch (e) {
       errors.push(e instanceof Error ? e.message : 'Unknown')
     }
@@ -149,7 +160,11 @@ function parseRSSDoc(doc: Document, config: FeedConfig): NewsItem[] {
 async function fetchFeed(config: FeedConfig): Promise<NewsItem[]> {
   const xml = await fetchXML(config.url)
   const doc = new DOMParser().parseFromString(xml, 'text/xml')
-  if (doc.querySelector('parsererror')) throw new Error('XML parse error')
+  const parseErr = doc.querySelector('parsererror')
+  if (parseErr) {
+    const snippet = xml.slice(0, 120).replace(/\s+/g, ' ')
+    throw new Error(`XML parse error (starts with: ${snippet}…)`)
+  }
   return parseRSSDoc(doc, config)
 }
 
