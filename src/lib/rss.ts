@@ -11,72 +11,8 @@ export interface NewsItem {
 }
 
 interface FeedConfig {
-  url: string
   source: Source
   label: string
-}
-
-const NBP_URL =
-  'https://news.google.com/rss/search?q=NBP+OR+%22Narodowy+Bank+Polski%22+OR+%22Narodowego+Banku+Polskiego%22+OR+RPP+OR+%22Rada+Polityki+Pieni%C4%99%C5%BCnej%22+OR+inflacja+OR+%22stopy+procentowe%22+OR+%22stopa+procentowa%22+OR+Glapi%C5%84ski+OR+Kotecki+OR+Tyrowicz+OR+Wnorowski+OR+D%C4%85browski+OR+%22Iwona+Duda%22+OR+Janczyk+OR+Kochalski+OR+Litwiniuk+OR+Mas%C5%82owska+OR+Zarzecki&hl=pl&gl=PL&ceid=PL:pl'
-
-export const FEEDS: FeedConfig[] = [
-  { url: 'https://www.federalreserve.gov/feeds/press_all.xml', source: 'FED', label: 'PRESS' },
-  { url: 'https://www.federalreserve.gov/feeds/speeches.xml',  source: 'FED', label: 'SPEECH' },
-  { url: 'https://www.federalreserve.gov/feeds/fomc.xml',      source: 'FED', label: 'FOMC' },
-  { url: 'https://www.federalreserve.gov/feeds/clp.xml',       source: 'FED', label: 'POLICY' },
-  { url: 'https://www.ecb.europa.eu/rss/press.html',           source: 'ECB', label: 'PRESS' },
-  { url: 'https://www.ecb.europa.eu/rss/speeches.html',        source: 'ECB', label: 'SPEECH' },
-  { url: 'https://www.ecb.europa.eu/rss/blog.html',            source: 'ECB', label: 'BLOG' },
-  { url: 'https://www.ecb.europa.eu/rss/pub.html',             source: 'ECB', label: 'PUB' },
-  { url: NBP_URL,                                              source: 'NBP', label: 'NEWS' },
-]
-
-async function fetchWithTimeout(url: string, ms = 12000): Promise<Response> {
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), ms)
-  try {
-    const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' })
-    clearTimeout(timer)
-    return res
-  } catch (e) {
-    clearTimeout(timer)
-    if (ctrl.signal.aborted) throw new Error(`Timeout after ${ms / 1000}s`)
-    throw e
-  }
-}
-
-const PROXY_FACTORIES: ((url: string) => { proxyUrl: string; extract: (res: Response) => Promise<string> })[] = [
-  (url) => ({
-    proxyUrl: `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-    extract: async (res) => ((await res.json()) as { contents: string }).contents,
-  }),
-  (url) => ({
-    proxyUrl: `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    extract: (res) => res.text(),
-  }),
-  (url) => ({
-    proxyUrl: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-    extract: (res) => res.text(),
-  }),
-]
-
-async function fetchXML(originalUrl: string): Promise<string> {
-  const errors: string[] = []
-
-  for (const factory of PROXY_FACTORIES) {
-    const { proxyUrl, extract } = factory(originalUrl)
-    try {
-      const res = await fetchWithTimeout(proxyUrl)
-      if (!res.ok) { errors.push(`${res.status}`); continue }
-      const text = await extract(res)
-      if (text && (text.trim().startsWith('<') || text.includes('<?xml'))) return text
-      errors.push('Not XML')
-    } catch (e) {
-      errors.push(e instanceof Error ? e.message : 'Unknown')
-    }
-  }
-
-  throw new Error(`All proxies failed: ${errors.join(', ')}`)
 }
 
 function stripHtml(html: string): string {
@@ -146,30 +82,31 @@ function parseRSSDoc(doc: Document, config: FeedConfig): NewsItem[] {
   return items
 }
 
-async function fetchFeed(config: FeedConfig): Promise<NewsItem[]> {
-  const xml = await fetchXML(config.url)
-  const doc = new DOMParser().parseFromString(xml, 'text/xml')
-  if (doc.querySelector('parsererror')) throw new Error('XML parse error')
-  return parseRSSDoc(doc, config)
-}
-
 export async function fetchAllFeeds(): Promise<{
   items: NewsItem[]
   errors: { feed: string; message: string }[]
 }> {
-  const allItems: NewsItem[] = []
-  const errors: { feed: string; message: string }[] = []
+  const res = await fetch('/api/rss', { cache: 'no-store' })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
 
-  const results = await Promise.allSettled(FEEDS.map((f) => fetchFeed(f)))
-  results.forEach((result, i) => {
-    const config = FEEDS[i]
-    if (result.status === 'fulfilled') {
-      allItems.push(...result.value)
-    } else {
-      const msg = result.reason instanceof Error ? result.reason.message : 'Unknown error'
-      errors.push({ feed: `${config.source} ${config.label}`, message: msg })
+  const data: {
+    feeds: { source: Source; label: string; xml: string }[]
+    errors: { feed: string; message: string }[]
+  } = await res.json()
+
+  const allItems: NewsItem[] = []
+
+  for (const feed of data.feeds) {
+    try {
+      const doc = new DOMParser().parseFromString(feed.xml, 'text/xml')
+      const parseErr = doc.querySelector('parsererror')
+      if (parseErr) continue
+      const items = parseRSSDoc(doc, { source: feed.source, label: feed.label })
+      allItems.push(...items)
+    } catch {
+      // skip malformed feed
     }
-  })
+  }
 
   const seen = new Set<string>()
   const unique = allItems.filter((item) => {
@@ -187,7 +124,7 @@ export async function fetchAllFeeds(): Promise<{
     return tb - ta
   })
 
-  return { items: unique, errors }
+  return { items: unique, errors: data.errors }
 }
 
 export function relativeTime(date: Date): string {
