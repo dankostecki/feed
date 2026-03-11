@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 const NBP_URL =
   'https://news.google.com/rss/search?q=NBP+OR+%22Narodowy+Bank+Polski%22+OR+%22Narodowego+Banku+Polskiego%22+OR+RPP+OR+%22Rada+Polityki+Pieni%C4%99%C5%BCnej%22+OR+inflacja+OR+%22stopy+procentowe%22+OR+%22stopa+procentowa%22+OR+Glapi%C5%84ski+OR+Kotecki+OR+Tyrowicz+OR+Wnorowski+OR+D%C4%85browski+OR+%22Iwona+Duda%22+OR+Janczyk+OR+Kochalski+OR+Litwiniuk+OR+Mas%C5%82owska+OR+Zarzecki&hl=pl&gl=PL&ceid=PL:pl'
 
@@ -22,15 +24,23 @@ const FEEDS: FeedConfig[] = [
 ]
 
 async function fetchFeedXML(url: string): Promise<string> {
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; CentralBankTerminal/1.0)',
-      'Accept': 'application/rss+xml, application/xml, text/xml, */*',
-    },
-    next: { revalidate: 0 },
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return res.text()
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), 8000)
+  try {
+    const res = await fetch(url, {
+      signal: ctrl.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; CentralBankTerminal/1.0)',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+      },
+    })
+    clearTimeout(timer)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.text()
+  } catch (e) {
+    clearTimeout(timer)
+    throw e
+  }
 }
 
 export async function GET() {
@@ -54,5 +64,8 @@ export async function GET() {
     }
   })
 
-  return NextResponse.json({ feeds, errors })
+  return NextResponse.json(
+    { feeds, errors },
+    { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+  )
 }

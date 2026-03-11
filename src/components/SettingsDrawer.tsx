@@ -167,7 +167,7 @@ export default function SettingsDrawer({
                 ['App', 'CB Terminal v1.0'],
                 ['Sources', 'FED · ECB · NBP'],
                 ['Storage', 'Browser localStorage only'],
-                ['Network', 'CORS proxy — corsproxy.io / allorigins.win'],
+                ['Network', 'Vercel serverless API'],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-start justify-between gap-2">
                   <span className="text-[10px]" style={{ color: 'var(--text-ui)' }}>{k}</span>
@@ -184,7 +184,7 @@ export default function SettingsDrawer({
           style={{ borderTop: '1px solid var(--border)' }}
         >
           <span className="text-[10px]" style={{ color: 'var(--text-dim)' }}>
-            Data stored locally · No tracking · No server
+            Data stored locally · No tracking
           </span>
         </div>
       </div>
