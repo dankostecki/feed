@@ -31,15 +31,16 @@ export const FEEDS: FeedConfig[] = [
   { url: NBP_URL,                                              source: 'NBP', label: 'NEWS' },
 ]
 
-async function fetchWithTimeout(url: string, ms = 8000): Promise<Response> {
+async function fetchWithTimeout(url: string, ms = 15000): Promise<Response> {
   const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), ms)
+  const timer = setTimeout(() => ctrl.abort('timeout'), ms)
   try {
     const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' })
     clearTimeout(timer)
     return res
   } catch (e) {
     clearTimeout(timer)
+    if (ctrl.signal.aborted) throw new Error(`Request timed out after ${ms}ms`)
     throw e
   }
 }
