@@ -31,7 +31,7 @@ export const FEEDS: FeedConfig[] = [
   { url: NBP_URL,                                              source: 'NBP', label: 'NEWS' },
 ]
 
-async function fetchWithTimeout(url: string, ms = 8000): Promise<Response> {
+async function fetchWithTimeout(url: string, ms = 12000): Promise<Response> {
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), ms)
   try {
@@ -40,28 +40,43 @@ async function fetchWithTimeout(url: string, ms = 8000): Promise<Response> {
     return res
   } catch (e) {
     clearTimeout(timer)
+    if (ctrl.signal.aborted) throw new Error(`Timeout after ${ms / 1000}s`)
     throw e
   }
 }
 
-async function fetchXML(originalUrl: string): Promise<string> {
-  const proxy1 = `https://corsproxy.io/?${encodeURIComponent(originalUrl)}`
-  const proxy2 = `https://api.allorigins.win/get?url=${encodeURIComponent(originalUrl)}`
+const PROXY_FACTORIES: ((url: string) => { proxyUrl: string; extract: (res: Response) => Promise<string> })[] = [
+  (url) => ({
+    proxyUrl: `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    extract: async (res) => ((await res.json()) as { contents: string }).contents,
+  }),
+  (url) => ({
+    proxyUrl: `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    extract: (res) => res.text(),
+  }),
+  (url) => ({
+    proxyUrl: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+    extract: (res) => res.text(),
+  }),
+]
 
-  try {
-    const res = await fetchWithTimeout(proxy1)
-    if (res.ok) {
-      const text = await res.text()
-      if (text.trim().startsWith('<') || text.includes('<?xml')) return text
+async function fetchXML(originalUrl: string): Promise<string> {
+  const errors: string[] = []
+
+  for (const factory of PROXY_FACTORIES) {
+    const { proxyUrl, extract } = factory(originalUrl)
+    try {
+      const res = await fetchWithTimeout(proxyUrl)
+      if (!res.ok) { errors.push(`${res.status}`); continue }
+      const text = await extract(res)
+      if (text && (text.trim().startsWith('<') || text.includes('<?xml'))) return text
+      errors.push('Not XML')
+    } catch (e) {
+      errors.push(e instanceof Error ? e.message : 'Unknown')
     }
-  } catch {
-    // fall through
   }
 
-  const res = await fetchWithTimeout(proxy2)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const json = (await res.json()) as { contents: string }
-  return json.contents
+  throw new Error(`All proxies failed: ${errors.join(', ')}`)
 }
 
 function stripHtml(html: string): string {
