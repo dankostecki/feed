@@ -21,6 +21,7 @@ const FEEDS: FeedConfig[] = [
   { url: 'https://www.ecb.europa.eu/rss/blog.html',            source: 'ECB', label: 'BLOG' },
   { url: 'https://www.ecb.europa.eu/rss/pub.html',             source: 'ECB', label: 'PUB' },
   { url: NBP_URL,                                              source: 'NBP', label: 'NEWS' },
+  { url: 'https://news.google.com/rss/search?q=site:reuters.com&hl=en-US&gl=US&ceid=US:en', source: 'REUTERS', label: 'NEWS' },
 ]
 
 async function fetchFeedXML(url: string): Promise<string> {

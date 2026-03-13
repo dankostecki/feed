@@ -4,7 +4,7 @@ export interface FeedMeta {
   border: string  // CSS var — translucent border for tag
   symbol: string
   label: string
-  source: 'FED' | 'ECB' | 'NBP'
+  source: 'FED' | 'ECB' | 'NBP' | 'REUTERS'
 }
 
 export const FEED_META: Record<string, FeedMeta> = {
@@ -16,13 +16,15 @@ export const FEED_META: Record<string, FeedMeta> = {
   'ECB::SPEECH': { color: 'var(--feed-ecb-speech)', bg: 'var(--feed-ecb-speech-bg)', border: 'var(--feed-ecb-speech-bd)', symbol: '◎', label: 'ECB · SPEECH', source: 'ECB' },
   'ECB::BLOG':   { color: 'var(--feed-ecb-blog)',   bg: 'var(--feed-ecb-blog-bg)',   border: 'var(--feed-ecb-blog-bd)',   symbol: '◈', label: 'ECB · BLOG',   source: 'ECB' },
   'ECB::PUB':    { color: 'var(--feed-ecb-pub)',    bg: 'var(--feed-ecb-pub-bg)',    border: 'var(--feed-ecb-pub-bd)',    symbol: '▣', label: 'ECB · PUB',    source: 'ECB' },
-  'NBP::NEWS':   { color: 'var(--feed-nbp-news)',   bg: 'var(--feed-nbp-news-bg)',   border: 'var(--feed-nbp-news-bd)',   symbol: '●', label: 'NBP · NEWS',   source: 'NBP' },
+  'NBP::NEWS':       { color: 'var(--feed-nbp-news)',       bg: 'var(--feed-nbp-news-bg)',       border: 'var(--feed-nbp-news-bd)',       symbol: '●', label: 'NBP · NEWS',       source: 'NBP' },
+  'REUTERS::NEWS':   { color: 'var(--feed-reuters-news)',   bg: 'var(--feed-reuters-news-bg)',   border: 'var(--feed-reuters-news-bd)',   symbol: '◉', label: 'REUTERS · NEWS',   source: 'REUTERS' },
 }
 
 export const SOURCE_SUBFEEDS: Record<string, string[]> = {
   FED: ['PRESS', 'SPEECH', 'FOMC', 'POLICY'],
   ECB: ['PRESS', 'SPEECH', 'BLOG', 'PUB'],
   NBP: ['NEWS'],
+  REUTERS: ['NEWS'],
 }
 
 // All return CSS vars — resolved correctly for dark AND light by the browser
@@ -30,18 +32,21 @@ export const SOURCE_COLOR: Record<string, string> = {
   FED: 'var(--src-FED)',
   ECB: 'var(--src-ECB)',
   NBP: 'var(--src-NBP)',
+  REUTERS: 'var(--src-REUTERS)',
 }
 
 export const SOURCE_BG: Record<string, string> = {
   FED: 'var(--src-FED-bg)',
   ECB: 'var(--src-ECB-bg)',
   NBP: 'var(--src-NBP-bg)',
+  REUTERS: 'var(--src-REUTERS-bg)',
 }
 
 export const SOURCE_BD: Record<string, string> = {
   FED: 'var(--src-FED-bd)',
   ECB: 'var(--src-ECB-bd)',
   NBP: 'var(--src-NBP-bd)',
+  REUTERS: 'var(--src-REUTERS-bd)',
 }
 
 export function getFeedMeta(source: string, feedLabel: string): FeedMeta {
@@ -52,7 +57,7 @@ export function getFeedMeta(source: string, feedLabel: string): FeedMeta {
       border: 'rgba(107,114,128,0.25)',
       symbol: '○',
       label: `${source} · ${feedLabel}`,
-      source: source as 'FED' | 'ECB' | 'NBP',
+      source: source as 'FED' | 'ECB' | 'NBP' | 'REUTERS',
     }
   )
 }

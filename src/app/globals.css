@@ -70,6 +70,14 @@
   --feed-nbp-news:    #34d399;
   --feed-nbp-news-bg: rgba(52,211,153,0.10);
   --feed-nbp-news-bd: rgba(52,211,153,0.32);
+
+  --src-REUTERS:    #fb7185;
+  --src-REUTERS-bg: rgba(251,113,133,0.09);
+  --src-REUTERS-bd: rgba(251,113,133,0.30);
+
+  --feed-reuters-news:    #fb7185;
+  --feed-reuters-news-bg: rgba(251,113,133,0.10);
+  --feed-reuters-news-bd: rgba(251,113,133,0.32);
 }
 
 /* ── Light mode ──────────────────────────────────────────────────────────── */
@@ -138,6 +146,14 @@
   --feed-nbp-news:    #065f46;
   --feed-nbp-news-bg: rgba(6,95,70,0.08);
   --feed-nbp-news-bd: rgba(6,95,70,0.28);
+
+  --src-REUTERS:    #9f1239;
+  --src-REUTERS-bg: rgba(159,18,57,0.08);
+  --src-REUTERS-bd: rgba(159,18,57,0.28);
+
+  --feed-reuters-news:    #9f1239;
+  --feed-reuters-news-bg: rgba(159,18,57,0.08);
+  --feed-reuters-news-bd: rgba(159,18,57,0.28);
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
