@@ -15,7 +15,8 @@ const FEEDS: FeedConfig[] = [
   { url: 'https://www.federalreserve.gov/feeds/press_all.xml', source: 'FED', label: 'PRESS' },
   { url: 'https://www.federalreserve.gov/feeds/speeches.xml',  source: 'FED', label: 'SPEECH' },
   { url: 'https://www.federalreserve.gov/feeds/fomc.xml',      source: 'FED', label: 'FOMC' },
-  { url: 'https://www.federalreserve.gov/feeds/clp.xml',       source: 'FED', label: 'POLICY' },
+  { url: 'https://www.federalreserve.gov/feeds/clp.xml',        source: 'FED', label: 'POLICY' },
+  { url: 'https://www.federalreserve.gov/feeds/feds_notes.xml', source: 'FED', label: 'NOTES' },
   { url: 'https://www.ecb.europa.eu/rss/press.html',           source: 'ECB', label: 'PRESS' },
   { url: 'https://www.ecb.europa.eu/rss/speeches.html',        source: 'ECB', label: 'SPEECH' },
   { url: 'https://www.ecb.europa.eu/rss/blog.html',            source: 'ECB', label: 'BLOG' },
@@ -24,9 +25,9 @@ const FEEDS: FeedConfig[] = [
   { url: 'https://news.google.com/rss/search?q=site:reuters.com/markets&hl=en-US&gl=US&ceid=US:en',  source: 'REUTERS', label: 'MARKETS' },
   { url: 'https://news.google.com/rss/search?q=site:reuters.com/business&hl=en-US&gl=US&ceid=US:en', source: 'REUTERS', label: 'BUSINESS' },
   { url: 'https://news.google.com/rss/search?q=site:reuters.com/world&hl=en-US&gl=US&ceid=US:en',    source: 'REUTERS', label: 'WORLD' },
-  { url: 'https://feeds.bloomberg.com/markets/news.rss',   source: 'BLOOMBERG', label: 'MARKETS' },
-  { url: 'https://feeds.bloomberg.com/economics/news.rss', source: 'BLOOMBERG', label: 'ECONOMICS' },
-  { url: 'https://feeds.bloomberg.com/politics/news.rss',  source: 'BLOOMBERG', label: 'POLITICS' },
+  { url: 'https://news.google.com/rss/search?q=site:bloomberg.com/news/articles+markets&hl=en-US&gl=US&ceid=US:en',   source: 'BLOOMBERG', label: 'MARKETS' },
+  { url: 'https://news.google.com/rss/search?q=site:bloomberg.com/news/articles+economics&hl=en-US&gl=US&ceid=US:en', source: 'BLOOMBERG', label: 'ECONOMICS' },
+  { url: 'https://news.google.com/rss/search?q=site:bloomberg.com/news/articles+politics&hl=en-US&gl=US&ceid=US:en',  source: 'BLOOMBERG', label: 'POLITICS' },
 ]
 
 async function fetchFeedXML(url: string): Promise<string> {

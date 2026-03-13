@@ -12,6 +12,7 @@ export const FEED_META: Record<string, FeedMeta> = {
   'FED::SPEECH': { color: 'var(--feed-fed-speech)', bg: 'var(--feed-fed-speech-bg)', border: 'var(--feed-fed-speech-bd)', symbol: '◎', label: 'FED · SPEECH', source: 'FED' },
   'FED::FOMC':   { color: 'var(--feed-fed-fomc)',   bg: 'var(--feed-fed-fomc-bg)',   border: 'var(--feed-fed-fomc-bd)',   symbol: '◆', label: 'FED · FOMC',   source: 'FED' },
   'FED::POLICY': { color: 'var(--feed-fed-policy)', bg: 'var(--feed-fed-policy-bg)', border: 'var(--feed-fed-policy-bd)', symbol: '▷', label: 'FED · POLICY', source: 'FED' },
+  'FED::NOTES':  { color: 'var(--feed-fed-notes)',  bg: 'var(--feed-fed-notes-bg)',  border: 'var(--feed-fed-notes-bd)',  symbol: '▣', label: 'FED · NOTES',  source: 'FED' },
   'ECB::PRESS':  { color: 'var(--feed-ecb-press)',  bg: 'var(--feed-ecb-press-bg)',  border: 'var(--feed-ecb-press-bd)',  symbol: '◉', label: 'ECB · PRESS',  source: 'ECB' },
   'ECB::SPEECH': { color: 'var(--feed-ecb-speech)', bg: 'var(--feed-ecb-speech-bg)', border: 'var(--feed-ecb-speech-bd)', symbol: '◎', label: 'ECB · SPEECH', source: 'ECB' },
   'ECB::BLOG':   { color: 'var(--feed-ecb-blog)',   bg: 'var(--feed-ecb-blog-bg)',   border: 'var(--feed-ecb-blog-bd)',   symbol: '◈', label: 'ECB · BLOG',   source: 'ECB' },
@@ -26,7 +27,7 @@ export const FEED_META: Record<string, FeedMeta> = {
 }
 
 export const SOURCE_SUBFEEDS: Record<string, string[]> = {
-  FED: ['PRESS', 'SPEECH', 'FOMC', 'POLICY'],
+  FED: ['PRESS', 'SPEECH', 'FOMC', 'POLICY', 'NOTES'],
   ECB: ['PRESS', 'SPEECH', 'BLOG', 'PUB'],
   NBP: ['NEWS'],
   REUTERS: ['MARKETS', 'BUSINESS', 'WORLD'],
