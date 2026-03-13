@@ -21,8 +21,12 @@ const FEEDS: FeedConfig[] = [
   { url: 'https://www.ecb.europa.eu/rss/blog.html',            source: 'ECB', label: 'BLOG' },
   { url: 'https://www.ecb.europa.eu/rss/pub.html',             source: 'ECB', label: 'PUB' },
   { url: NBP_URL,                                              source: 'NBP', label: 'NEWS' },
-  { url: 'https://news.google.com/rss/search?q=site:reuters.com&hl=en-US&gl=US&ceid=US:en',    source: 'REUTERS',   label: 'NEWS' },
-  { url: 'https://news.google.com/rss/search?q=site:bloomberg.com&hl=en-US&gl=US&ceid=US:en',  source: 'BLOOMBERG', label: 'NEWS' },
+  { url: 'https://news.google.com/rss/search?q=site:reuters.com/markets&hl=en-US&gl=US&ceid=US:en',  source: 'REUTERS', label: 'MARKETS' },
+  { url: 'https://news.google.com/rss/search?q=site:reuters.com/business&hl=en-US&gl=US&ceid=US:en', source: 'REUTERS', label: 'BUSINESS' },
+  { url: 'https://news.google.com/rss/search?q=site:reuters.com/world&hl=en-US&gl=US&ceid=US:en',    source: 'REUTERS', label: 'WORLD' },
+  { url: 'https://feeds.bloomberg.com/markets/news.rss',   source: 'BLOOMBERG', label: 'MARKETS' },
+  { url: 'https://feeds.bloomberg.com/economics/news.rss', source: 'BLOOMBERG', label: 'ECONOMICS' },
+  { url: 'https://feeds.bloomberg.com/politics/news.rss',  source: 'BLOOMBERG', label: 'POLITICS' },
 ]
 
 async function fetchFeedXML(url: string): Promise<string> {

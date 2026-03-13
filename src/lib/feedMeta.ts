@@ -17,16 +17,20 @@ export const FEED_META: Record<string, FeedMeta> = {
   'ECB::BLOG':   { color: 'var(--feed-ecb-blog)',   bg: 'var(--feed-ecb-blog-bg)',   border: 'var(--feed-ecb-blog-bd)',   symbol: '◈', label: 'ECB · BLOG',   source: 'ECB' },
   'ECB::PUB':    { color: 'var(--feed-ecb-pub)',    bg: 'var(--feed-ecb-pub-bg)',    border: 'var(--feed-ecb-pub-bd)',    symbol: '▣', label: 'ECB · PUB',    source: 'ECB' },
   'NBP::NEWS':       { color: 'var(--feed-nbp-news)',       bg: 'var(--feed-nbp-news-bg)',       border: 'var(--feed-nbp-news-bd)',       symbol: '●', label: 'NBP · NEWS',       source: 'NBP' },
-  'REUTERS::NEWS':     { color: 'var(--feed-reuters-news)',     bg: 'var(--feed-reuters-news-bg)',     border: 'var(--feed-reuters-news-bd)',     symbol: '◉', label: 'REUTERS · NEWS',     source: 'REUTERS' },
-  'BLOOMBERG::NEWS':   { color: 'var(--feed-bloomberg-news)',   bg: 'var(--feed-bloomberg-news-bg)',   border: 'var(--feed-bloomberg-news-bd)',   symbol: '◆', label: 'BLOOMBERG · NEWS',   source: 'BLOOMBERG' },
+  'REUTERS::MARKETS':  { color: 'var(--feed-reuters-markets)',  bg: 'var(--feed-reuters-markets-bg)',  border: 'var(--feed-reuters-markets-bd)',  symbol: '◉', label: 'REUTERS · MARKETS',  source: 'REUTERS' },
+  'REUTERS::BUSINESS': { color: 'var(--feed-reuters-business)', bg: 'var(--feed-reuters-business-bg)', border: 'var(--feed-reuters-business-bd)', symbol: '◎', label: 'REUTERS · BUSINESS', source: 'REUTERS' },
+  'REUTERS::WORLD':    { color: 'var(--feed-reuters-world)',    bg: 'var(--feed-reuters-world-bg)',    border: 'var(--feed-reuters-world-bd)',    symbol: '◆', label: 'REUTERS · WORLD',    source: 'REUTERS' },
+  'BLOOMBERG::MARKETS':   { color: 'var(--feed-bloomberg-markets)',   bg: 'var(--feed-bloomberg-markets-bg)',   border: 'var(--feed-bloomberg-markets-bd)',   symbol: '◉', label: 'BLOOMBERG · MARKETS',   source: 'BLOOMBERG' },
+  'BLOOMBERG::ECONOMICS': { color: 'var(--feed-bloomberg-economics)', bg: 'var(--feed-bloomberg-economics-bg)', border: 'var(--feed-bloomberg-economics-bd)', symbol: '◎', label: 'BLOOMBERG · ECONOMICS', source: 'BLOOMBERG' },
+  'BLOOMBERG::POLITICS':  { color: 'var(--feed-bloomberg-politics)',  bg: 'var(--feed-bloomberg-politics-bg)',  border: 'var(--feed-bloomberg-politics-bd)',  symbol: '◆', label: 'BLOOMBERG · POLITICS',  source: 'BLOOMBERG' },
 }
 
 export const SOURCE_SUBFEEDS: Record<string, string[]> = {
   FED: ['PRESS', 'SPEECH', 'FOMC', 'POLICY'],
   ECB: ['PRESS', 'SPEECH', 'BLOG', 'PUB'],
   NBP: ['NEWS'],
-  REUTERS: ['NEWS'],
-  BLOOMBERG: ['NEWS'],
+  REUTERS: ['MARKETS', 'BUSINESS', 'WORLD'],
+  BLOOMBERG: ['MARKETS', 'ECONOMICS', 'POLITICS'],
 }
 
 // All return CSS vars — resolved correctly for dark AND light by the browser

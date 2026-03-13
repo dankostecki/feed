@@ -115,7 +115,17 @@ export async function fetchAllFeeds(): Promise<{
     return true
   })
 
-  unique.sort((a, b) => {
+  // Cross-sub-feed dedup: same source + same link = same article
+  const seenLinks = new Set<string>()
+  const deduped = unique.filter((item) => {
+    if (!item.link) return true
+    const linkKey = `${item.source}::${item.link}`
+    if (seenLinks.has(linkKey)) return false
+    seenLinks.add(linkKey)
+    return true
+  })
+
+  deduped.sort((a, b) => {
     const ta = a.pubDate.getTime()
     const tb = b.pubDate.getTime()
     if (ta === 0 && tb === 0) return 0
@@ -124,7 +134,7 @@ export async function fetchAllFeeds(): Promise<{
     return tb - ta
   })
 
-  return { items: unique, errors: data.errors }
+  return { items: deduped, errors: data.errors }
 }
 
 export function relativeTime(date: Date): string {
