@@ -282,6 +282,14 @@ export default function Terminal() {
               <span className="hidden sm:inline">{loading ? 'SYNC…' : 'REFRESH'}</span>
             </Btn>
 
+            {/* Bookmarks */}
+            <Btn onClick={() => { if (viewMode !== 'GRID') switchView('GRID'); handleSourceChange('SAVED') }}
+              active={sourceFilter === 'SAVED'} accentColor="#f59e0b" title="Saved bookmarks">
+              ★
+              <span className="hidden sm:inline">SAVED</span>
+              {bookmarkIds.size > 0 && <span className="tabular-nums" style={{ fontSize: '10px', opacity: 0.75 }}>{bookmarkIds.size}</span>}
+            </Btn>
+
             {/* Settings gear */}
             <button onClick={() => setSettingsOpen(true)} title="Settings"
               className="flex items-center px-2 py-1.5 border rounded-sm transition-all duration-150"
