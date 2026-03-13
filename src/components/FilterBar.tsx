@@ -19,16 +19,18 @@ const BTN: Record<string, { color: string; bg: string; bd: string }> = {
   ALL:   { color: 'var(--text-hi)',       bg: 'var(--hover)',      bd: 'var(--border)'     },
   FED:   { color: 'var(--src-FED)',       bg: 'var(--src-FED-bg)', bd: 'var(--src-FED-bd)' },
   ECB:   { color: 'var(--src-ECB)',       bg: 'var(--src-ECB-bg)', bd: 'var(--src-ECB-bd)' },
-  NBP:   { color: 'var(--src-NBP)',       bg: 'var(--src-NBP-bg)', bd: 'var(--src-NBP-bd)' },
-  SAVED: { color: 'var(--feed-fed-press)', bg: 'var(--feed-fed-press-bg)', bd: 'var(--feed-fed-press-bd)' },
+  NBP:     { color: 'var(--src-NBP)',       bg: 'var(--src-NBP-bg)',     bd: 'var(--src-NBP-bd)'     },
+  REUTERS: { color: 'var(--src-REUTERS)',   bg: 'var(--src-REUTERS-bg)', bd: 'var(--src-REUTERS-bd)' },
+  SAVED:   { color: 'var(--feed-fed-press)', bg: 'var(--feed-fed-press-bg)', bd: 'var(--feed-fed-press-bd)' },
 }
 
 const SOURCES: { value: Filter; label: string }[] = [
   { value: 'ALL',   label: 'ALL'   },
   { value: 'FED',   label: 'FED'   },
   { value: 'ECB',   label: 'ECB'   },
-  { value: 'NBP',   label: 'NBP'   },
-  { value: 'SAVED', label: 'SAVED' },
+  { value: 'NBP',     label: 'NBP'     },
+  { value: 'REUTERS', label: 'REUTERS' },
+  { value: 'SAVED',   label: 'SAVED'   },
 ]
 
 export default function FilterBar({ source, subFilters, counts, subCounts, onSourceChange, onSubFilterToggle }: Props) {

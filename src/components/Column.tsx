@@ -5,7 +5,7 @@ import { FEED_META, SOURCE_COLOR, SOURCE_BG, SOURCE_BD, SOURCE_SUBFEEDS } from '
 import NewsCard from './NewsCard'
 
 interface Props {
-  source: 'FED' | 'ECB' | 'NBP'
+  source: 'FED' | 'ECB' | 'NBP' | 'REUTERS'
   items: NewsItem[]
   subFilters: Set<string>
   subCounts: Record<string, number>
@@ -23,6 +23,7 @@ const SOURCE_FULL: Record<string, string> = {
   FED: 'Federal Reserve',
   ECB: 'European Central Bank',
   NBP: 'Narodowy Bank Polski',
+  REUTERS: 'Reuters News Agency',
 }
 
 export default function Column({ source, items, subFilters, subCounts, readIds, bookmarkIds, loading, initialLoaded, searchQuery, onRead, onBookmark, onSubFilterToggle }: Props) {
