@@ -16,7 +16,7 @@ const THEME_KEY    = 'cbt:theme'
 
 type ViewMode = 'GRID' | 'COLUMNS'
 type Theme    = 'dark'  | 'light'
-const SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS']
+const SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG']
 
 // ── Ticking clock ─────────────────────────────────────────────────────────
 function TickingClock() {
@@ -55,7 +55,7 @@ export default function Terminal() {
   const [theme,          setTheme]         = useState<Theme>('dark')
   const [sourceFilter,   setSourceFilter]  = useState<Filter>('ALL')
   const [subFilters,     setSubFilters]    = useState<Set<string>>(new Set())
-  const [colSubFilters,  setColSubFilters] = useState<Record<string, Set<string>>>({ FED: new Set(), ECB: new Set(), NBP: new Set(), REUTERS: new Set() })
+  const [colSubFilters,  setColSubFilters] = useState<Record<string, Set<string>>>({ FED: new Set(), ECB: new Set(), NBP: new Set(), REUTERS: new Set(), BLOOMBERG: new Set() })
   const [mobileActiveCol,setMobileActiveCol] = useState<Source>('FED')
   const [autoRefresh,    setAutoRefresh]   = useState(false)
   const [loading,        setLoading]       = useState(false)
@@ -167,8 +167,9 @@ export default function Terminal() {
     FED:   items.filter((i) => i.source === 'FED').length,
     ECB:   items.filter((i) => i.source === 'ECB').length,
     NBP:     items.filter((i) => i.source === 'NBP').length,
-    REUTERS: items.filter((i) => i.source === 'REUTERS').length,
-    SAVED:   bookmarkIds.size,
+    REUTERS:   items.filter((i) => i.source === 'REUTERS').length,
+    BLOOMBERG: items.filter((i) => i.source === 'BLOOMBERG').length,
+    SAVED:     bookmarkIds.size,
   }
   const subCounts: Record<string, number> = {}
   items.forEach((i) => { const k = `${i.source}::${i.feedLabel}`; subCounts[k] = (subCounts[k] ?? 0) + 1 })

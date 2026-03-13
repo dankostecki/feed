@@ -165,7 +165,7 @@ export default function SettingsDrawer({
             <div className="pt-1 flex flex-col gap-1.5">
               {[
                 ['App', 'CB Terminal v1.0'],
-                ['Sources', 'FED · ECB · NBP · REUTERS'],
+                ['Sources', 'FED · ECB · NBP · REUTERS · BLOOMBERG'],
                 ['Storage', 'Browser localStorage only'],
                 ['Network', 'Vercel serverless API'],
               ].map(([k, v]) => (
