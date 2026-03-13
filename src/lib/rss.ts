@@ -1,4 +1,4 @@
-export type Source = 'FED' | 'ECB' | 'NBP' | 'REUTERS'
+export type Source = 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG'
 
 export interface NewsItem {
   id: string
