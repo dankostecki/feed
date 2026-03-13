@@ -28,6 +28,9 @@ const FEEDS: FeedConfig[] = [
   { url: 'https://news.google.com/rss/search?q=site:bloomberg.com/news/articles+markets&hl=en-US&gl=US&ceid=US:en',   source: 'BLOOMBERG', label: 'MARKETS' },
   { url: 'https://news.google.com/rss/search?q=site:bloomberg.com/news/articles+economics&hl=en-US&gl=US&ceid=US:en', source: 'BLOOMBERG', label: 'ECONOMICS' },
   { url: 'https://news.google.com/rss/search?q=site:bloomberg.com/news/articles+politics&hl=en-US&gl=US&ceid=US:en',  source: 'BLOOMBERG', label: 'POLITICS' },
+  { url: 'https://feeds.bloomberg.com/markets/news.rss',   source: 'BLOOMBERG', label: 'MARKETS' },
+  { url: 'https://feeds.bloomberg.com/economics/news.rss', source: 'BLOOMBERG', label: 'ECONOMICS' },
+  { url: 'https://feeds.bloomberg.com/politics/news.rss',  source: 'BLOOMBERG', label: 'POLITICS' },
 ]
 
 async function fetchFeedXML(url: string): Promise<string> {
