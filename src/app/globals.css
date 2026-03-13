@@ -51,6 +51,10 @@
   --feed-fed-policy-bg: rgba(253,224,71,0.10);
   --feed-fed-policy-bd: rgba(253,224,71,0.32);
 
+  --feed-fed-notes:    #fbbf24;
+  --feed-fed-notes-bg: rgba(251,191,36,0.10);
+  --feed-fed-notes-bd: rgba(251,191,36,0.32);
+
   --feed-ecb-press:    #38bdf8;
   --feed-ecb-press-bg: rgba(56,189,248,0.10);
   --feed-ecb-press-bd: rgba(56,189,248,0.32);
@@ -150,6 +154,10 @@
   --feed-fed-policy:    #78350f;
   --feed-fed-policy-bg: rgba(120,53,15,0.08);
   --feed-fed-policy-bd: rgba(120,53,15,0.28);
+
+  --feed-fed-notes:    #854d0e;
+  --feed-fed-notes-bg: rgba(133,77,14,0.08);
+  --feed-fed-notes-bd: rgba(133,77,14,0.28);
 
   --feed-ecb-press:    #075985;
   --feed-ecb-press-bg: rgba(7,89,133,0.08);
