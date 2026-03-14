@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useRef } from 'react'
 import { NewsItem, relativeTime, absoluteTime } from '@/lib/rss'
 import { getFeedMeta } from '@/lib/feedMeta'
 
@@ -9,6 +10,22 @@ interface Props {
   bookmarked: boolean
   onRead: (id: string) => void
   onBookmark: (id: string) => void
+}
+
+function CopyIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+  )
 }
 
 function BookmarkIcon({ filled }: { filled: boolean }) {
@@ -23,6 +40,8 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
   const meta = getFeedMeta(item.source, item.feedLabel)
   const rel  = relativeTime(item.pubDate)
   const abs  = absoluteTime(item.pubDate)
+  const [copied, setCopied] = useState(false)
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function handleClick() {
     onRead(item.id)
@@ -32,6 +51,14 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
   function handleBookmark(e: React.MouseEvent) {
     e.stopPropagation()
     onBookmark(item.id)
+  }
+
+  function handleCopy(e: React.MouseEvent) {
+    e.stopPropagation()
+    navigator.clipboard.writeText(item.title)
+    setCopied(true)
+    if (copyTimer.current) clearTimeout(copyTimer.current)
+    copyTimer.current = setTimeout(() => setCopied(false), 1500)
   }
 
   return (
@@ -91,13 +118,23 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
           </time>
         </div>
 
-        {/* Title — dimmer when read, full contrast when unread */}
-        <h3
-          className="text-[13px] font-semibold leading-snug line-clamp-3 font-mono"
-          style={{ color: read ? 'var(--text-lo)' : 'var(--text-hi)' }}
-        >
-          {item.title}
-        </h3>
+        {/* Title + copy button */}
+        <div className="flex items-start gap-1.5">
+          <h3
+            className="flex-1 text-[13px] font-semibold leading-snug line-clamp-3 font-mono"
+            style={{ color: read ? 'var(--text-lo)' : 'var(--text-hi)' }}
+          >
+            {item.title}
+          </h3>
+          <button
+            onClick={handleCopy}
+            title={copied ? 'Copied!' : 'Copy title'}
+            className="shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-all duration-150 hover:scale-110"
+            style={{ color: copied ? '#34d399' : 'var(--text-dim)' }}
+          >
+            {copied ? <CheckIcon /> : <CopyIcon />}
+          </button>
+        </div>
 
         {/* Timestamp */}
         <div
