@@ -129,7 +129,7 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
           <button
             onClick={handleCopy}
             title={copied ? 'Copied!' : 'Copy title'}
-            className="shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-all duration-150 hover:scale-110"
+            className="shrink-0 mt-0.5 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-150 hover:scale-110"
             style={{ color: copied ? '#34d399' : 'var(--text-dim)' }}
           >
             {copied ? <CheckIcon /> : <CopyIcon />}
