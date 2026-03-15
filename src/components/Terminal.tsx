@@ -5,6 +5,7 @@ import { fetchAllFeeds, NewsItem, Source } from '@/lib/rss'
 import { SOURCE_COLOR, SOURCE_BG, SOURCE_BD } from '@/lib/feedMeta'
 import NewsCard from './NewsCard'
 import Column from './Column'
+import DateSeparator, { dayKey } from './DateSeparator'
 import FilterBar, { Filter } from './FilterBar'
 import StatusBar from './StatusBar'
 import SettingsDrawer from './SettingsDrawer'
@@ -451,14 +452,20 @@ export default function Terminal() {
 
           {gridFiltered.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-              {gridFiltered.map((item) => (
-                <NewsCard key={item.id} item={item}
-                  read={readIds.has(item.id)}
-                  bookmarked={bookmarkIds.has(item.id)}
-                  onRead={markAsRead}
-                  onBookmark={toggleBookmark}
-                />
-              ))}
+              {gridFiltered.map((item, i) => {
+                const dk = dayKey(item.pubDate)
+                const prev = i > 0 ? dayKey(gridFiltered[i - 1].pubDate) : null
+                const showSep = dk !== prev
+                return (
+                  <>{showSep && <DateSeparator key={`sep-${dk}`} date={item.pubDate} span />}
+                  <NewsCard key={item.id} item={item}
+                    read={readIds.has(item.id)}
+                    bookmarked={bookmarkIds.has(item.id)}
+                    onRead={markAsRead}
+                    onBookmark={toggleBookmark}
+                  /></>
+                )
+              })}
             </div>
           )}
         </main>
