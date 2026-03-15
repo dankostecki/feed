@@ -3,6 +3,7 @@
 import { NewsItem } from '@/lib/rss'
 import { FEED_META, SOURCE_COLOR, SOURCE_BG, SOURCE_BD, SOURCE_SUBFEEDS } from '@/lib/feedMeta'
 import NewsCard from './NewsCard'
+import DateSeparator, { dayKey } from './DateSeparator'
 
 interface Props {
   source: 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG'
@@ -122,11 +123,19 @@ export default function Column({ source, items, subFilters, subCounts, readIds, 
         )}
         {visible.length > 0 && (
           <div className="flex flex-col">
-            {visible.map((item) => (
-              <NewsCard key={item.id} item={item}
-                read={readIds.has(item.id)} bookmarked={bookmarkIds.has(item.id)}
-                onRead={onRead} onBookmark={onBookmark} />
-            ))}
+            {visible.map((item, i) => {
+              const dk = dayKey(item.pubDate)
+              const prev = i > 0 ? dayKey(visible[i - 1].pubDate) : null
+              const showSep = dk !== prev
+              return (
+                <div key={item.id}>
+                  {showSep && <DateSeparator date={item.pubDate} />}
+                  <NewsCard item={item}
+                    read={readIds.has(item.id)} bookmarked={bookmarkIds.has(item.id)}
+                    onRead={onRead} onBookmark={onBookmark} />
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
