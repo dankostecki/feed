@@ -33,13 +33,18 @@ function makeId(config: FeedConfig, key: string): string {
   return `${config.source}::${config.label}::${key}`
 }
 
+function suffixTitle(title: string, config: FeedConfig): string {
+  if (config.source === 'BLOOMBERG' && !title.endsWith(' - Bloomberg')) return `${title} - Bloomberg`
+  return title
+}
+
 function parseRSSDoc(doc: Document, config: FeedConfig): NewsItem[] {
   const items: NewsItem[] = []
 
   const rssItems = doc.querySelectorAll('channel > item')
   if (rssItems.length > 0) {
     rssItems.forEach((item) => {
-      const title = getElText(item, 'title')
+      const title = suffixTitle(getElText(item, 'title'), config)
       if (!title) return
       const linkEl = item.querySelector('link')
       const link = linkEl?.textContent?.trim() || item.querySelector('enclosure')?.getAttribute('url') || ''
@@ -60,7 +65,7 @@ function parseRSSDoc(doc: Document, config: FeedConfig): NewsItem[] {
   // Atom
   const entries = doc.querySelectorAll('entry')
   entries.forEach((entry) => {
-    const title = getElText(entry, 'title')
+    const title = suffixTitle(getElText(entry, 'title'), config)
     if (!title) return
     const linkEl =
       entry.querySelector('link[rel="alternate"]') ||
