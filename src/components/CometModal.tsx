@@ -55,7 +55,8 @@ export default function CometModal({ item, onClose }: Props) {
   }, [onClose])
 
   function handleAction(prompt: string) {
-    const target = item.source === 'BLOOMBERG' && item.link ? item.link : item.title
+    const hasDirectLink = (item.source === 'BLOOMBERG' || item.source === 'STOOQ') && item.link
+    const target = hasDirectLink ? item.link : item.title
     const sourceLink = item.link ? `\n\nŹródło: ${item.link}` : ''
     const query = encodeURIComponent(prompt + sourceLink + ' ' + target)
     const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent)

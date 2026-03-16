@@ -28,6 +28,9 @@ const FEEDS: FeedConfig[] = [
   { url: 'https://feeds.bloomberg.com/markets/news.rss',   source: 'BLOOMBERG', label: 'MARKETS' },
   { url: 'https://feeds.bloomberg.com/economics/news.rss', source: 'BLOOMBERG', label: 'ECONOMICS' },
   { url: 'https://feeds.bloomberg.com/politics/news.rss',  source: 'BLOOMBERG', label: 'POLITICS' },
+  { url: 'https://static.stooq.pl/rss/pl/b.rss', source: 'STOOQ', label: 'BIZNES' },
+  { url: 'https://static.stooq.pl/rss/pl/c.rss', source: 'STOOQ', label: 'KRAJ' },
+  { url: 'https://static.stooq.pl/rss/pl/w.rss', source: 'STOOQ', label: 'ŚWIAT' },
 ]
 
 async function fetchFeedXML(url: string): Promise<string> {
