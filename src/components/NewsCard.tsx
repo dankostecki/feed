@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { NewsItem, relativeTime, absoluteTime } from '@/lib/rss'
 import { getFeedMeta } from '@/lib/feedMeta'
+import CometModal from './CometModal'
 
 interface Props {
   item: NewsItem
@@ -49,6 +50,7 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
   const rel  = relativeTime(item.pubDate)
   const abs  = absoluteTime(item.pubDate)
   const [copied, setCopied] = useState(false)
+  const [cometOpen, setCometOpen] = useState(false)
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function handleClick() {
@@ -63,11 +65,7 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
 
   function handleComet(e: React.MouseEvent) {
     e.stopPropagation()
-    if (!item.link) return
-    const prompt = 'najważniejsze punkty artykułu i podsumowanie w języku polskim'
-    const query = encodeURIComponent(prompt + ' ' + item.link)
-    const intentUrl = `intent://www.perplexity.ai/search?q=${query}#Intent;scheme=https;package=ai.perplexity.comet;end`
-    window.location.href = intentUrl
+    setCometOpen(true)
   }
 
   function handleCopy(e: React.MouseEvent) {
@@ -177,6 +175,9 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
           style={{ backgroundColor: 'var(--feed-fed-press)' }}
         />
       )}
+
+      {/* Comet AI modal */}
+      {cometOpen && <CometModal item={item} onClose={() => setCometOpen(false)} />}
     </article>
   )
 }
