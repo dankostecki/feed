@@ -12,6 +12,14 @@ interface Props {
   onBookmark: (id: string) => void
 }
 
+function CometIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 20l7-7"/><path d="M14 4l6 6-8 8-6-6z"/><path d="M18 2l4 4"/>
+    </svg>
+  )
+}
+
 function CopyIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -51,6 +59,15 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
   function handleBookmark(e: React.MouseEvent) {
     e.stopPropagation()
     onBookmark(item.id)
+  }
+
+  function handleComet(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!item.link) return
+    const prompt = 'najważniejsze punkty artykułu i podsumowanie w języku polskim'
+    const query = encodeURIComponent(prompt + ' ' + item.link)
+    const intentUrl = `intent://www.perplexity.ai/search?q=${query}#Intent;scheme=https;package=ai.perplexity.comet;end`
+    window.location.href = intentUrl
   }
 
   function handleCopy(e: React.MouseEvent) {
@@ -126,6 +143,14 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
           >
             {item.title}
           </h3>
+          <button
+            onClick={handleComet}
+            title="Open in Comet"
+            className="shrink-0 mt-0.5 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-150 hover:scale-110"
+            style={{ color: 'var(--text-dim)' }}
+          >
+            <CometIcon />
+          </button>
           <button
             onClick={handleCopy}
             title={copied ? 'Copied!' : 'Copy title'}
