@@ -187,7 +187,7 @@ export default function Terminal() {
       style={{
         backgroundColor: 'var(--bg)', color: 'var(--text-hi)',
         height: isColumns ? '100dvh' : undefined,
-        minHeight: isColumns ? undefined : '100vh',
+        minHeight: isColumns ? undefined : '100dvh',
         overflow: isColumns ? 'hidden' : undefined,
       }}
     >
@@ -243,28 +243,6 @@ export default function Terminal() {
           {/* Controls */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <TickingClock />
-
-            {/* View toggle — hidden on mobile, accessible from drawer */}
-            <div className="hidden sm:flex items-center rounded-sm overflow-hidden" style={{ border: '1px solid var(--border)' }}>
-              {([
-                { v: 'GRID' as ViewMode, label: 'GRID', title: 'Mixed grid',
-                  icon: <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="0.5"/><rect x="7" y="0" width="5" height="5" rx="0.5"/><rect x="0" y="7" width="5" height="5" rx="0.5"/><rect x="7" y="7" width="5" height="5" rx="0.5"/></svg> },
-                { v: 'COLUMNS' as ViewMode, label: 'COLS', title: 'FED | ECB | NBP columns',
-                  icon: <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="3" height="12" rx="0.5"/><rect x="4.5" y="0" width="3" height="12" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg> },
-              ] as const).map(({ v, label, title, icon }) => (
-                <button key={v} onClick={() => switchView(v)} title={title}
-                  className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-[10px] font-bold tracking-widest font-mono transition-all duration-150"
-                  style={
-                    viewMode === v
-                      ? { color: 'var(--text-hi)', backgroundColor: isDark ? '#0d1e35' : '#d8e8f4', borderRight: v === 'GRID' ? '1px solid var(--border)' : undefined }
-                      : { color: 'var(--text-ui)', backgroundColor: 'transparent', borderRight: v === 'GRID' ? '1px solid var(--border)' : undefined }
-                  }
-                >
-                  {icon}
-                  <span className="hidden sm:inline">{label}</span>
-                </button>
-              ))}
-            </div>
 
             {/* Theme toggle — hidden on mobile, in drawer */}
             <button onClick={switchTheme} title={isDark ? 'Light mode' : 'Dark mode'}
@@ -399,31 +377,15 @@ export default function Terminal() {
           </div>
         )}
 
-        {/* Strip 5: result count (GRID only, hidden on mobile) */}
-        {!isColumns && (
-          <div className="hidden sm:flex items-center justify-between px-3 sm:px-4 py-1" style={{ borderTop: '1px solid var(--border-dim)', backgroundColor: 'var(--bg)' }}>
-            <span className="text-[10px] font-mono" style={{ color: 'var(--text-ui)' }}>
-              {loading
-                ? <span style={{ color: '#38bdf880' }} className="animate-pulse">FETCHING…</span>
-                : <><span style={{ color: sourceFilter === 'SAVED' ? '#f59e0b' : sourceFilter !== 'ALL' ? SOURCE_COLOR[sourceFilter] : 'var(--text-md)' }}>{gridFiltered.length}</span>{' ARTICLES'}</>
-              }
-            </span>
-            {errors.length > 0 && (
-              <span className="text-[10px] font-mono" style={{ color: 'rgba(248,113,113,0.65)' }}
-                title={errors.map((e) => `${e.feed}: ${e.message}`).join(' | ')}>
-                {errors.length} ERR
-              </span>
-            )}
-          </div>
-        )}
       </header>
 
       {/* ── COLUMN VIEW ── */}
       {isColumns && (
-        <div className="flex flex-1 overflow-hidden min-h-0">
+        <div className="flex flex-1 overflow-x-auto overflow-y-hidden min-h-0 no-scrollbar">
           {SOURCES.map((src) => (
-            /* Mobile: show only active column. Desktop: show all 3 */
-            <div key={src} className={`${mobileActiveCol === src ? 'flex' : 'hidden'} md:flex flex-1 min-w-0 overflow-hidden`}>
+            /* Mobile: show only active column. Desktop: min-width per column, horizontally scrollable */
+            <div key={src} className={`${mobileActiveCol === src ? 'flex' : 'hidden'} md:flex shrink-0 overflow-hidden`}
+              style={{ width: 'min(280px, 100vw)', minWidth: '200px' }}>
               <Column
                 source={src}
                 items={items.filter((i) => i.source === src)}
@@ -436,7 +398,7 @@ export default function Terminal() {
                 onRead={markAsRead}
                 onBookmark={toggleBookmark}
                 onSubFilterToggle={(lbl) => toggleColSubFilter(src, lbl)}
-              searchQuery={q}
+                searchQuery={q}
               />
             </div>
           ))}

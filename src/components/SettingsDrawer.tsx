@@ -126,10 +126,10 @@ export default function SettingsDrawer({
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-6">
 
-          {/* Controls — visible on mobile where header buttons are hidden */}
+          {/* Controls — view mode + bookmarks */}
           {viewMode && onViewModeChange && (
             <Section title="Controls">
-              <div className="flex items-center justify-between gap-3 py-2.5 sm:hidden" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+              <div className="flex items-center justify-between gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border-dim)' }}>
                 <span className="text-[11px] font-mono" style={{ color: 'var(--text-hi)' }}>View mode</span>
                 <div className="flex items-center rounded-sm overflow-hidden" style={{ border: '1px solid var(--border)' }}>
                   {(['GRID', 'COLUMNS'] as const).map((v) => (
@@ -143,7 +143,7 @@ export default function SettingsDrawer({
                 </div>
               </div>
               {onShowSaved && (
-                <div className="flex items-center justify-between gap-3 py-2.5 sm:hidden" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+                <div className="flex items-center justify-between gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border-dim)' }}>
                   <div className="flex flex-col leading-none gap-0.5">
                     <span className="text-[11px] font-mono" style={{ color: 'var(--text-hi)' }}>Bookmarks</span>
                     <span className="text-[10px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{bookmarkCount} saved</span>
