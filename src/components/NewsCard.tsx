@@ -63,9 +63,9 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
 
   function handleComet(e: React.MouseEvent) {
     e.stopPropagation()
-    if (!item.link) return
     const prompt = 'najważniejsze punkty artykułu i podsumowanie w języku polskim'
-    const query = encodeURIComponent(prompt + ' ' + item.link)
+    const target = item.source === 'BLOOMBERG' && item.link ? item.link : item.title
+    const query = encodeURIComponent(prompt + ' ' + target)
     const intentUrl = `intent://www.perplexity.ai/search?q=${query}#Intent;scheme=https;package=ai.perplexity.comet;end`
     window.location.href = intentUrl
   }
