@@ -43,7 +43,7 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
   return (
     <div className="flex flex-col gap-2 w-full">
       {/* ── Source buttons — clean, no dots/symbols inside ── */}
-      <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="flex items-center gap-1.5 overflow-x-auto sm:flex-wrap no-scrollbar">
         {SOURCES.map(({ value, label }) => {
           const isActive = source === value
           const { color, bg, bd } = BTN[value]
@@ -53,7 +53,7 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
             <button
               key={value}
               onClick={() => onSourceChange(value)}
-              className="flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-100"
+              className="flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-100 shrink-0 sm:shrink"
               style={
                 isActive
                   ? {
@@ -83,7 +83,7 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
 
       {/* ── Sub-feed channel chips ── */}
       {subfeeds.length > 1 && (
-        <div className="flex items-center gap-1 flex-wrap pl-0.5">
+        <div className="flex items-center gap-1 overflow-x-auto sm:flex-wrap no-scrollbar pl-0.5">
           <span
             className="text-[9px] font-mono tracking-widest uppercase mr-1"
             style={{ color: 'var(--text-ui)' }}
@@ -99,7 +99,7 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
               <button
                 key={lbl}
                 onClick={() => onSubFilterToggle(lbl)}
-                className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold tracking-wider border rounded-sm font-mono transition-all duration-100"
+                className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold tracking-wider border rounded-sm font-mono transition-all duration-100 shrink-0 sm:shrink"
                 style={
                   isOn
                     ? { color: meta.color, backgroundColor: meta.bg, borderColor: meta.border, boxShadow: `0 0 8px ${meta.border}` }

@@ -67,6 +67,7 @@ export default function Terminal() {
   const [initialLoaded,  setInitialLoaded] = useState(false)
   const [settingsOpen,   setSettingsOpen]  = useState(false)
   const [searchQuery,    setSearchQuery]   = useState('')
+  const [searchOpen,     setSearchOpen]    = useState(false)
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const searchRef    = useRef<HTMLInputElement>(null)
 
@@ -207,6 +208,9 @@ export default function Terminal() {
         onClearAll={clearAll}
         onThemeToggle={switchTheme}
         onAutoRefreshToggle={() => setAutoRefresh((v) => !v)}
+        viewMode={viewMode}
+        onViewModeChange={switchView}
+        onShowSaved={() => { if (viewMode !== 'GRID') switchView('GRID'); handleSourceChange('SAVED'); setSettingsOpen(false) }}
       />
 
       {/* ── HEADER ── */}
@@ -240,8 +244,8 @@ export default function Terminal() {
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <TickingClock />
 
-            {/* View toggle */}
-            <div className="flex items-center rounded-sm overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+            {/* View toggle — hidden on mobile, accessible from drawer */}
+            <div className="hidden sm:flex items-center rounded-sm overflow-hidden" style={{ border: '1px solid var(--border)' }}>
               {([
                 { v: 'GRID' as ViewMode, label: 'GRID', title: 'Mixed grid',
                   icon: <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="0.5"/><rect x="7" y="0" width="5" height="5" rx="0.5"/><rect x="0" y="7" width="5" height="5" rx="0.5"/><rect x="7" y="7" width="5" height="5" rx="0.5"/></svg> },
@@ -262,19 +266,33 @@ export default function Terminal() {
               ))}
             </div>
 
-            {/* Theme toggle */}
+            {/* Theme toggle — hidden on mobile, in drawer */}
             <button onClick={switchTheme} title={isDark ? 'Light mode' : 'Dark mode'}
-              className="px-2 py-1.5 text-[12px] border rounded-sm font-mono transition-all duration-150"
+              className="hidden sm:flex px-2 py-1.5 text-[12px] border rounded-sm font-mono transition-all duration-150"
               style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>
               {isDark ? '☀' : '☾'}
             </button>
 
-            {/* AUTO refresh */}
-            <Btn onClick={() => setAutoRefresh((v) => !v)} active={autoRefresh} accentColor="#34d399" title="Toggle auto-refresh 60s">
-              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ backgroundColor: autoRefresh ? '#34d399' : 'var(--text-dim)', animation: autoRefresh ? 'pulse 2s ease-in-out infinite' : 'none' }} />
-              <span className="hidden sm:inline">AUTO</span>
-            </Btn>
+            {/* AUTO refresh — hidden on mobile, in drawer */}
+            <span className="hidden sm:flex">
+              <Btn onClick={() => setAutoRefresh((v) => !v)} active={autoRefresh} accentColor="#34d399" title="Toggle auto-refresh 60s">
+                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: autoRefresh ? '#34d399' : 'var(--text-dim)', animation: autoRefresh ? 'pulse 2s ease-in-out infinite' : 'none' }} />
+                <span className="hidden sm:inline">AUTO</span>
+              </Btn>
+            </span>
+
+            {/* Search toggle — mobile only */}
+            <button onClick={() => { setSearchOpen((v) => !v); if (!searchOpen) setTimeout(() => searchRef.current?.focus(), 100) }} title="Search"
+              className="flex sm:hidden items-center px-2 py-1.5 border rounded-sm transition-all duration-150"
+              style={searchOpen
+                ? { color: 'var(--src-ECB)', borderColor: 'var(--src-ECB)', backgroundColor: 'var(--src-ECB-bg)' }
+                : { color: 'var(--text-ui)', borderColor: 'var(--border)' }
+              }>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+            </button>
 
             {/* Refresh */}
             <Btn onClick={loadFeeds} disabled={loading} title="Fetch now">
@@ -284,13 +302,15 @@ export default function Terminal() {
               <span className="hidden sm:inline">{loading ? 'SYNC…' : 'REFRESH'}</span>
             </Btn>
 
-            {/* Bookmarks */}
-            <Btn onClick={() => { if (viewMode !== 'GRID') switchView('GRID'); handleSourceChange('SAVED') }}
-              active={sourceFilter === 'SAVED'} accentColor="#f59e0b" title="Saved bookmarks">
-              ★
-              <span className="hidden sm:inline">SAVED</span>
-              {bookmarkIds.size > 0 && <span className="tabular-nums" style={{ fontSize: '10px', opacity: 0.75 }}>{bookmarkIds.size}</span>}
-            </Btn>
+            {/* Bookmarks — hidden on mobile, accessible from drawer */}
+            <span className="hidden sm:flex">
+              <Btn onClick={() => { if (viewMode !== 'GRID') switchView('GRID'); handleSourceChange('SAVED') }}
+                active={sourceFilter === 'SAVED'} accentColor="#f59e0b" title="Saved bookmarks">
+                ★
+                <span className="hidden sm:inline">SAVED</span>
+                {bookmarkIds.size > 0 && <span className="tabular-nums" style={{ fontSize: '10px', opacity: 0.75 }}>{bookmarkIds.size}</span>}
+              </Btn>
+            </span>
 
             {/* Settings gear */}
             <button onClick={() => setSettingsOpen(true)} title="Settings"
@@ -304,8 +324,8 @@ export default function Terminal() {
           </div>
         </div>
 
-        {/* Strip 2: Search — visible in both GRID and COLUMNS */}
-        <div className="flex items-center gap-2 px-3 sm:px-4 py-2" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+        {/* Strip 2: Search — always on desktop, toggle on mobile */}
+        <div className={`${searchOpen ? 'flex' : 'hidden'} sm:flex items-center gap-2 px-3 sm:px-4 py-2`} style={{ borderBottom: '1px solid var(--border-dim)' }}>
           {/* Search icon */}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
             style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)', flexShrink: 0 }}>
@@ -379,9 +399,9 @@ export default function Terminal() {
           </div>
         )}
 
-        {/* Strip 5: result count (GRID only) */}
+        {/* Strip 5: result count (GRID only, hidden on mobile) */}
         {!isColumns && (
-          <div className="flex items-center justify-between px-3 sm:px-4 py-1" style={{ borderTop: '1px solid var(--border-dim)', backgroundColor: 'var(--bg)' }}>
+          <div className="hidden sm:flex items-center justify-between px-3 sm:px-4 py-1" style={{ borderTop: '1px solid var(--border-dim)', backgroundColor: 'var(--bg)' }}>
             <span className="text-[10px] font-mono" style={{ color: 'var(--text-ui)' }}>
               {loading
                 ? <span style={{ color: '#38bdf880' }} className="animate-pulse">FETCHING…</span>

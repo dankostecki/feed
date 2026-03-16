@@ -14,6 +14,9 @@ interface Props {
   onClearAll: () => void
   onThemeToggle: () => void
   onAutoRefreshToggle: () => void
+  viewMode?: 'GRID' | 'COLUMNS'
+  onViewModeChange?: (v: 'GRID' | 'COLUMNS') => void
+  onShowSaved?: () => void
 }
 
 function Row({ label, value, action, actionLabel, danger = false }: {
@@ -64,6 +67,7 @@ export default function SettingsDrawer({
   theme, autoRefresh,
   onClearRead, onClearBookmarks, onClearAll,
   onThemeToggle, onAutoRefreshToggle,
+  viewMode, onViewModeChange, onShowSaved,
 }: Props) {
   // Close on Escape
   useEffect(() => {
@@ -121,6 +125,38 @@ export default function SettingsDrawer({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-6">
+
+          {/* Controls — visible on mobile where header buttons are hidden */}
+          {viewMode && onViewModeChange && (
+            <Section title="Controls">
+              <div className="flex items-center justify-between gap-3 py-2.5 sm:hidden" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+                <span className="text-[11px] font-mono" style={{ color: 'var(--text-hi)' }}>View mode</span>
+                <div className="flex items-center rounded-sm overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+                  {(['GRID', 'COLUMNS'] as const).map((v) => (
+                    <button key={v} onClick={() => { onViewModeChange(v); onClose() }}
+                      className="px-3 py-1.5 text-[10px] font-bold tracking-widest font-mono transition-all duration-150"
+                      style={viewMode === v
+                        ? { color: 'var(--text-hi)', backgroundColor: theme === 'dark' ? '#0d1e35' : '#d8e8f4' }
+                        : { color: 'var(--text-ui)', backgroundColor: 'transparent' }
+                      }>{v}</button>
+                  ))}
+                </div>
+              </div>
+              {onShowSaved && (
+                <div className="flex items-center justify-between gap-3 py-2.5 sm:hidden" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+                  <div className="flex flex-col leading-none gap-0.5">
+                    <span className="text-[11px] font-mono" style={{ color: 'var(--text-hi)' }}>Bookmarks</span>
+                    <span className="text-[10px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{bookmarkCount} saved</span>
+                  </div>
+                  <button onClick={onShowSaved}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
+                    style={{ color: '#f59e0b', borderColor: '#f59e0b40' }}>
+                    ★ SAVED
+                  </button>
+                </div>
+              )}
+            </Section>
+          )}
 
           <Section title="Display">
             <Row
