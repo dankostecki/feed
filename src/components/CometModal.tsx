@@ -58,8 +58,12 @@ export default function CometModal({ item, onClose }: Props) {
     const target = item.source === 'BLOOMBERG' && item.link ? item.link : item.title
     const sourceLink = item.link ? `\n\nŹródło: ${item.link}` : ''
     const query = encodeURIComponent(prompt + sourceLink + ' ' + target)
-    const intentUrl = `intent://www.perplexity.ai/search?q=${query}#Intent;scheme=https;package=ai.perplexity.comet;end`
-    window.location.href = intentUrl
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent)
+    if (isMobile) {
+      window.location.href = `intent://www.perplexity.ai/search?q=${query}#Intent;scheme=https;package=ai.perplexity.comet;end`
+    } else {
+      window.open(`https://www.perplexity.ai/search?q=${query}`, '_blank', 'noopener,noreferrer')
+    }
     onClose()
   }
 
