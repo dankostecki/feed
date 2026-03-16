@@ -13,25 +13,25 @@ const ACTIONS = [
     label: 'PODSUMOWANIE',
     icon: '◆',
     desc: 'Kluczowe punkty w liście',
-    prompt: 'Najpierw otwórz i przeczytaj pełną treść artykułu podanego poniżej, a następnie przygotuj zwięzłe podsumowanie w formie wypunktowanej listy. Wyodrębnij kluczowe informacje, dane liczbowe, decyzje instytucji oraz ich potencjalny wpływ na rynki finansowe. Odpowiedź w języku polskim. Na końcu umieść sekcję „Źródło:" z linkiem do artykułu.',
+    prompt: 'Wyszukaj poniższy artykuł w internecie, znajdź jego pełną treść i przygotuj zwięzłe podsumowanie w formie wypunktowanej listy. Wyodrębnij kluczowe informacje, dane liczbowe, decyzje instytucji oraz ich potencjalny wpływ na rynki finansowe. Odpowiedź w języku polskim. Na końcu umieść sekcję „Źródło:" z bezpośrednim linkiem do oryginalnego artykułu.',
   },
   {
     label: 'ANALIZA',
     icon: '◈',
     desc: 'Pełna analiza ze szczegółami',
-    prompt: 'Najpierw otwórz i przeczytaj pełną treść artykułu podanego poniżej, a następnie przeprowadź szczegółową analizę. Uwzględnij wszystkie istotne fakty, dane makroekonomiczne, stanowiska decydentów, kontekst rynkowy oraz implikacje dla polityki monetarnej i fiskalnej. Wskaż powiązania z bieżącą sytuacją gospodarczą. Odpowiedź w języku polskim, ton profesjonalny i analityczny. Na końcu umieść sekcję „Źródło:" z linkiem do artykułu.',
+    prompt: 'Wyszukaj poniższy artykuł w internecie, znajdź jego pełną treść i przeprowadź szczegółową analizę. Uwzględnij wszystkie istotne fakty, dane makroekonomiczne, stanowiska decydentów, kontekst rynkowy oraz implikacje dla polityki monetarnej i fiskalnej. Wskaż powiązania z bieżącą sytuacją gospodarczą. Odpowiedź w języku polskim, ton profesjonalny i analityczny. Na końcu umieść sekcję „Źródło:" z bezpośrednim linkiem do oryginalnego artykułu.',
   },
   {
     label: 'POST NA X',
     icon: '✦',
     desc: 'Profesjonalny wpis 280 znaków',
-    prompt: 'Najpierw otwórz i przeczytaj pełną treść artykułu podanego poniżej, a następnie napisz profesjonalny, zwięzły wpis na platformę X (dawniej Twitter). Wpis powinien być merytoryczny, zawierać kluczową informację i jej znaczenie dla rynków. Użyj profesjonalnego tonu odpowiedniego dla branży finansowej. Dodaj odpowiednie hashtagi. Zmieść się w 280 znakach. Odpowiedź w języku polskim. Na końcu umieść sekcję „Źródło:" z linkiem do artykułu.',
+    prompt: 'Wyszukaj poniższy artykuł w internecie, znajdź jego pełną treść i napisz profesjonalny, zwięzły wpis na platformę X (dawniej Twitter). Wpis powinien być merytoryczny, zawierać kluczową informację i jej znaczenie dla rynków. Użyj profesjonalnego tonu odpowiedniego dla branży finansowej. Dodaj odpowiednie hashtagi. Zmieść się w 280 znakach. Odpowiedź w języku polskim. Na końcu umieść sekcję „Źródło:" z bezpośrednim linkiem do oryginalnego artykułu.',
   },
   {
     label: 'KOMBO',
     icon: '★',
     desc: 'Wszystko powyżej w jednym',
-    prompt: 'Najpierw otwórz i przeczytaj pełną treść artykułu podanego poniżej, a następnie wykonaj trzy zadania:\n\n1. PODSUMOWANIE — wypunktowana lista kluczowych informacji, danych liczbowych i decyzji instytucji wraz z ich wpływem na rynki.\n\n2. PEŁNA ANALIZA — szczegółowy przegląd wszystkich faktów, danych makroekonomicznych, stanowisk decydentów, kontekstu rynkowego i implikacji dla polityki monetarnej i fiskalnej.\n\n3. WPIS NA X — profesjonalny, zwięzły post na platformę X z kluczową informacją, jej znaczeniem dla rynków i odpowiednimi hashtagami (maks. 280 znaków).\n\nOdpowiedź w języku polskim, ton profesjonalny i analityczny. Na końcu umieść sekcję „Źródło:" z linkiem do artykułu.',
+    prompt: 'Wyszukaj poniższy artykuł w internecie, znajdź jego pełną treść i wykonaj trzy zadania:\n\n1. PODSUMOWANIE — wypunktowana lista kluczowych informacji, danych liczbowych i decyzji instytucji wraz z ich wpływem na rynki.\n\n2. PEŁNA ANALIZA — szczegółowy przegląd wszystkich faktów, danych makroekonomicznych, stanowisk decydentów, kontekstu rynkowego i implikacji dla polityki monetarnej i fiskalnej.\n\n3. WPIS NA X — profesjonalny, zwięzły post na platformę X z kluczową informacją, jej znaczeniem dla rynków i odpowiednimi hashtagami (maks. 280 znaków).\n\nOdpowiedź w języku polskim, ton profesjonalny i analityczny. Na końcu umieść sekcję „Źródło:" z bezpośrednim linkiem do oryginalnego artykułu.',
   },
 ]
 
