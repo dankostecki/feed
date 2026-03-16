@@ -55,7 +55,13 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
 
   function handleClick() {
     onRead(item.id)
-    if (item.link) window.open(item.link, '_blank', 'noopener,noreferrer')
+    if (!item.link) return
+    if (item.link.includes('news.google.com')) {
+      const cleanTitle = item.title.replace(/\s*-\s*(Bloomberg|Reuters)$/i, '')
+      window.open(`https://www.google.com/search?q=${encodeURIComponent(cleanTitle)}`, '_blank', 'noopener,noreferrer')
+    } else {
+      window.open(item.link, '_blank', 'noopener,noreferrer')
+    }
   }
 
   function handleBookmark(e: React.MouseEvent) {

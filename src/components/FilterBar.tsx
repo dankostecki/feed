@@ -22,6 +22,7 @@ const BTN: Record<string, { color: string; bg: string; bd: string }> = {
   NBP:     { color: 'var(--src-NBP)',       bg: 'var(--src-NBP-bg)',     bd: 'var(--src-NBP-bd)'     },
   REUTERS:   { color: 'var(--src-REUTERS)',   bg: 'var(--src-REUTERS-bg)',   bd: 'var(--src-REUTERS-bd)'   },
   BLOOMBERG: { color: 'var(--src-BLOOMBERG)', bg: 'var(--src-BLOOMBERG-bg)', bd: 'var(--src-BLOOMBERG-bd)' },
+  STOOQ:     { color: 'var(--src-STOOQ)',     bg: 'var(--src-STOOQ-bg)',     bd: 'var(--src-STOOQ-bd)'     },
   SAVED:     { color: 'var(--feed-fed-press)', bg: 'var(--feed-fed-press-bg)', bd: 'var(--feed-fed-press-bd)' },
 }
 
@@ -32,6 +33,7 @@ const SOURCES: { value: Filter; label: string }[] = [
   { value: 'NBP',     label: 'NBP'     },
   { value: 'REUTERS',   label: 'REUTERS'   },
   { value: 'BLOOMBERG', label: 'BLOOMBERG' },
+  { value: 'STOOQ',     label: 'STOOQ'     },
   { value: 'SAVED',     label: 'SAVED'     },
 ]
 

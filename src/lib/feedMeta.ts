@@ -4,7 +4,7 @@ export interface FeedMeta {
   border: string  // CSS var — translucent border for tag
   symbol: string
   label: string
-  source: 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG'
+  source: 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ'
 }
 
 export const FEED_META: Record<string, FeedMeta> = {
@@ -24,6 +24,9 @@ export const FEED_META: Record<string, FeedMeta> = {
   'BLOOMBERG::MARKETS':   { color: 'var(--feed-bloomberg-markets)',   bg: 'var(--feed-bloomberg-markets-bg)',   border: 'var(--feed-bloomberg-markets-bd)',   symbol: '◉', label: 'BLOOMBERG · MARKETS',   source: 'BLOOMBERG' },
   'BLOOMBERG::ECONOMICS': { color: 'var(--feed-bloomberg-economics)', bg: 'var(--feed-bloomberg-economics-bg)', border: 'var(--feed-bloomberg-economics-bd)', symbol: '◎', label: 'BLOOMBERG · ECONOMICS', source: 'BLOOMBERG' },
   'BLOOMBERG::POLITICS':  { color: 'var(--feed-bloomberg-politics)',  bg: 'var(--feed-bloomberg-politics-bg)',  border: 'var(--feed-bloomberg-politics-bd)',  symbol: '◆', label: 'BLOOMBERG · POLITICS',  source: 'BLOOMBERG' },
+  'STOOQ::BIZNES': { color: 'var(--feed-stooq-biznes)', bg: 'var(--feed-stooq-biznes-bg)', border: 'var(--feed-stooq-biznes-bd)', symbol: '◉', label: 'STOOQ · BIZNES', source: 'STOOQ' },
+  'STOOQ::KRAJ':   { color: 'var(--feed-stooq-kraj)',   bg: 'var(--feed-stooq-kraj-bg)',   border: 'var(--feed-stooq-kraj-bd)',   symbol: '◎', label: 'STOOQ · KRAJ',   source: 'STOOQ' },
+  'STOOQ::ŚWIAT':  { color: 'var(--feed-stooq-swiat)',  bg: 'var(--feed-stooq-swiat-bg)',  border: 'var(--feed-stooq-swiat-bd)',  symbol: '◆', label: 'STOOQ · ŚWIAT',  source: 'STOOQ' },
 }
 
 export const SOURCE_SUBFEEDS: Record<string, string[]> = {
@@ -32,6 +35,7 @@ export const SOURCE_SUBFEEDS: Record<string, string[]> = {
   NBP: ['NEWS'],
   REUTERS: ['MARKETS', 'BUSINESS', 'WORLD'],
   BLOOMBERG: ['MARKETS', 'ECONOMICS', 'POLITICS'],
+  STOOQ: ['BIZNES', 'KRAJ', 'ŚWIAT'],
 }
 
 // All return CSS vars — resolved correctly for dark AND light by the browser
@@ -41,6 +45,7 @@ export const SOURCE_COLOR: Record<string, string> = {
   NBP: 'var(--src-NBP)',
   REUTERS: 'var(--src-REUTERS)',
   BLOOMBERG: 'var(--src-BLOOMBERG)',
+  STOOQ: 'var(--src-STOOQ)',
 }
 
 export const SOURCE_BG: Record<string, string> = {
@@ -49,6 +54,7 @@ export const SOURCE_BG: Record<string, string> = {
   NBP: 'var(--src-NBP-bg)',
   REUTERS: 'var(--src-REUTERS-bg)',
   BLOOMBERG: 'var(--src-BLOOMBERG-bg)',
+  STOOQ: 'var(--src-STOOQ-bg)',
 }
 
 export const SOURCE_BD: Record<string, string> = {
@@ -57,6 +63,7 @@ export const SOURCE_BD: Record<string, string> = {
   NBP: 'var(--src-NBP-bd)',
   REUTERS: 'var(--src-REUTERS-bd)',
   BLOOMBERG: 'var(--src-BLOOMBERG-bd)',
+  STOOQ: 'var(--src-STOOQ-bd)',
 }
 
 export function getFeedMeta(source: string, feedLabel: string): FeedMeta {
@@ -67,7 +74,7 @@ export function getFeedMeta(source: string, feedLabel: string): FeedMeta {
       border: 'rgba(107,114,128,0.25)',
       symbol: '○',
       label: `${source} · ${feedLabel}`,
-      source: source as 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG',
+      source: source as 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ',
     }
   )
 }

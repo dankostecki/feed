@@ -106,6 +106,22 @@
   --feed-bloomberg-politics:    #818cf8;
   --feed-bloomberg-politics-bg: rgba(129,140,248,0.10);
   --feed-bloomberg-politics-bd: rgba(129,140,248,0.32);
+
+  --src-STOOQ:    #f97316;
+  --src-STOOQ-bg: rgba(249,115,22,0.09);
+  --src-STOOQ-bd: rgba(249,115,22,0.30);
+
+  --feed-stooq-biznes:    #f97316;
+  --feed-stooq-biznes-bg: rgba(249,115,22,0.10);
+  --feed-stooq-biznes-bd: rgba(249,115,22,0.32);
+
+  --feed-stooq-kraj:    #fb923c;
+  --feed-stooq-kraj-bg: rgba(251,146,60,0.10);
+  --feed-stooq-kraj-bd: rgba(251,146,60,0.32);
+
+  --feed-stooq-swiat:    #ea580c;
+  --feed-stooq-swiat-bg: rgba(234,88,12,0.10);
+  --feed-stooq-swiat-bd: rgba(234,88,12,0.32);
 }
 
 /* ── Light mode ──────────────────────────────────────────────────────────── */
@@ -210,6 +226,22 @@
   --feed-bloomberg-politics:    #4338ca;
   --feed-bloomberg-politics-bg: rgba(67,56,202,0.08);
   --feed-bloomberg-politics-bd: rgba(67,56,202,0.28);
+
+  --src-STOOQ:    #c2410c;
+  --src-STOOQ-bg: rgba(194,65,12,0.08);
+  --src-STOOQ-bd: rgba(194,65,12,0.28);
+
+  --feed-stooq-biznes:    #c2410c;
+  --feed-stooq-biznes-bg: rgba(194,65,12,0.08);
+  --feed-stooq-biznes-bd: rgba(194,65,12,0.28);
+
+  --feed-stooq-kraj:    #9a3412;
+  --feed-stooq-kraj-bg: rgba(154,52,18,0.08);
+  --feed-stooq-kraj-bd: rgba(154,52,18,0.28);
+
+  --feed-stooq-swiat:    #7c2d12;
+  --feed-stooq-swiat-bg: rgba(124,45,18,0.08);
+  --feed-stooq-swiat-bd: rgba(124,45,18,0.28);
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
