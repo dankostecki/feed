@@ -8,30 +8,31 @@ interface Props {
   onClose: () => void
 }
 
+// Task instructions only — the intro (open link vs search) is built dynamically per source
 const ACTIONS = [
   {
     label: 'PODSUMOWANIE',
     icon: '◆',
     desc: 'Kluczowe punkty w liście',
-    prompt: 'Najpierw otwórz i przeczytaj pełną treść artykułu podanego poniżej, a następnie przygotuj zwięzłe podsumowanie w formie wypunktowanej listy. Wyodrębnij kluczowe informacje, dane liczbowe, decyzje instytucji oraz ich potencjalny wpływ na rynki finansowe. Odpowiedź w języku polskim. Na końcu umieść sekcję „Źródło:" z linkiem do artykułu.',
+    task: 'przygotuj zwięzłe podsumowanie w formie wypunktowanej listy. Wyodrębnij kluczowe informacje, dane liczbowe, decyzje instytucji oraz ich potencjalny wpływ na rynki finansowe. Odpowiedź w języku polskim. Na końcu umieść sekcję „Źródło:" z bezpośrednim linkiem do oryginalnego artykułu.',
   },
   {
     label: 'ANALIZA',
     icon: '◈',
     desc: 'Pełna analiza ze szczegółami',
-    prompt: 'Najpierw otwórz i przeczytaj pełną treść artykułu podanego poniżej, a następnie przeprowadź szczegółową analizę. Uwzględnij wszystkie istotne fakty, dane makroekonomiczne, stanowiska decydentów, kontekst rynkowy oraz implikacje dla polityki monetarnej i fiskalnej. Wskaż powiązania z bieżącą sytuacją gospodarczą. Odpowiedź w języku polskim, ton profesjonalny i analityczny. Na końcu umieść sekcję „Źródło:" z linkiem do artykułu.',
+    task: 'przeprowadź szczegółową analizę. Uwzględnij wszystkie istotne fakty, dane makroekonomiczne, stanowiska decydentów, kontekst rynkowy oraz implikacje dla polityki monetarnej i fiskalnej. Wskaż powiązania z bieżącą sytuacją gospodarczą. Odpowiedź w języku polskim, ton profesjonalny i analityczny. Na końcu umieść sekcję „Źródło:" z bezpośrednim linkiem do oryginalnego artykułu.',
   },
   {
     label: 'POST NA X',
     icon: '✦',
     desc: 'Profesjonalny wpis 280 znaków',
-    prompt: 'Najpierw otwórz i przeczytaj pełną treść artykułu podanego poniżej, a następnie napisz profesjonalny, zwięzły wpis na platformę X (dawniej Twitter). Wpis powinien być merytoryczny, zawierać kluczową informację i jej znaczenie dla rynków. Użyj profesjonalnego tonu odpowiedniego dla branży finansowej. Dodaj odpowiednie hashtagi. Zmieść się w 280 znakach. Odpowiedź w języku polskim. Na końcu umieść sekcję „Źródło:" z linkiem do artykułu.',
+    task: 'napisz profesjonalny, zwięzły wpis na platformę X (dawniej Twitter). Wpis powinien być merytoryczny, zawierać kluczową informację i jej znaczenie dla rynków. Użyj profesjonalnego tonu odpowiedniego dla branży finansowej. Dodaj odpowiednie hashtagi. Zmieść się w 280 znakach. Odpowiedź w języku polskim. Na końcu umieść sekcję „Źródło:" z bezpośrednim linkiem do oryginalnego artykułu.',
   },
   {
     label: 'KOMBO',
     icon: '★',
     desc: 'Wszystko powyżej w jednym',
-    prompt: 'Najpierw otwórz i przeczytaj pełną treść artykułu podanego poniżej, a następnie wykonaj trzy zadania:\n\n1. PODSUMOWANIE — wypunktowana lista kluczowych informacji, danych liczbowych i decyzji instytucji wraz z ich wpływem na rynki.\n\n2. PEŁNA ANALIZA — szczegółowy przegląd wszystkich faktów, danych makroekonomicznych, stanowisk decydentów, kontekstu rynkowego i implikacji dla polityki monetarnej i fiskalnej.\n\n3. WPIS NA X — profesjonalny, zwięzły post na platformę X z kluczową informacją, jej znaczeniem dla rynków i odpowiednimi hashtagami (maks. 280 znaków).\n\nOdpowiedź w języku polskim, ton profesjonalny i analityczny. Na końcu umieść sekcję „Źródło:" z linkiem do artykułu.',
+    task: 'wykonaj trzy zadania:\n\n1. PODSUMOWANIE — wypunktowana lista kluczowych informacji, danych liczbowych i decyzji instytucji wraz z ich wpływem na rynki.\n\n2. PEŁNA ANALIZA — szczegółowy przegląd wszystkich faktów, danych makroekonomicznych, stanowisk decydentów, kontekstu rynkowego i implikacji dla polityki monetarnej i fiskalnej.\n\n3. WPIS NA X — profesjonalny, zwięzły post na platformę X z kluczową informacją, jej znaczeniem dla rynków i odpowiednimi hashtagami (maks. 280 znaków).\n\nOdpowiedź w języku polskim, ton profesjonalny i analityczny. Na końcu umieść sekcję „Źródło:" z bezpośrednim linkiem do oryginalnego artykułu.',
   },
 ]
 
@@ -44,16 +45,42 @@ export default function CometModal({ item, onClose }: Props) {
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
-  function handleAction(prompt: string) {
-    const hasDirectLink = (item.source === 'BLOOMBERG' || item.source === 'STOOQ') && item.link
+  function handleAction(task: string) {
+    // NBP & Reuters come from Google News — no direct article link, search by title
+    // FED, ECB, Bloomberg, Stooq have direct links — tell Comet to open & read
+    const isGoogleNews = item.link?.includes('news.google.com')
+    const hasDirectLink = !isGoogleNews && !!item.link
+    const intro = hasDirectLink
+      ? 'WAŻNE: Najpierw otwórz poniższy link i przeczytaj pełną treść artykułu. Dopiero po zapoznaniu się z treścią '
+      : 'Wyszukaj poniższy artykuł w internecie, znajdź jego pełną treść i '
     const reference = hasDirectLink ? item.link : item.title
-    const query = encodeURIComponent(prompt + '\n\nArtykuł: ' + reference)
-    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent)
-    if (isMobile) {
+    const query = encodeURIComponent(intro + task + '\n\nArtykuł: ' + reference)
+    const perplexityUrl = `https://www.perplexity.ai/search?q=${query}`
+
+    const isAndroid = /Android/i.test(navigator.userAgent)
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+    if (isAndroid) {
+      // Try Perplexity Comet app via intent; fall back to web after 1.5s
       window.location.href = `intent://www.perplexity.ai/search?q=${query}#Intent;scheme=https;package=ai.perplexity.comet;end`
+      const onVisChange = () => {
+        if (document.hidden) {
+          clearTimeout(timer)
+          document.removeEventListener('visibilitychange', onVisChange)
+        }
+      }
+      const timer = setTimeout(() => {
+        document.removeEventListener('visibilitychange', onVisChange)
+        window.open(perplexityUrl, '_blank', 'noopener,noreferrer')
+      }, 1500)
+      document.addEventListener('visibilitychange', onVisChange)
+    } else if (isIOS) {
+      // Universal links — opens Perplexity app if installed, otherwise Safari
+      window.location.href = perplexityUrl
     } else {
-      window.open(`https://www.perplexity.ai/search?q=${query}`, '_blank', 'noopener,noreferrer')
+      window.open(perplexityUrl, '_blank', 'noopener,noreferrer')
     }
+
     onClose()
   }
 
@@ -118,7 +145,7 @@ export default function CometModal({ item, onClose }: Props) {
             {ACTIONS.map((action) => (
               <button
                 key={action.label}
-                onClick={() => handleAction(action.prompt)}
+                onClick={() => handleAction(action.task)}
                 className="flex items-center gap-3 px-3.5 py-3 text-left border rounded-sm transition-all duration-150"
                 style={{
                   borderColor: 'var(--border)',
