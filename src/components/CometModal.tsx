@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { NewsItem } from '@/lib/rss'
 
 interface Props {
@@ -8,7 +8,6 @@ interface Props {
   onClose: () => void
 }
 
-// Task instructions only — the intro (open link vs search) is built dynamically per source
 const ACTIONS = [
   {
     label: 'PODSUMOWANIE',
@@ -37,6 +36,8 @@ const ACTIONS = [
 ]
 
 export default function CometModal({ item, onClose }: Props) {
+  const [copied, setCopied] = useState<string | null>(null)
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -45,43 +46,11 @@ export default function CometModal({ item, onClose }: Props) {
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
-  function handleAction(task: string) {
-    // NBP & Reuters come from Google News — no direct article link, search by title
-    // FED, ECB, Bloomberg, Stooq have direct links — tell Comet to open & read
-    const isGoogleNews = item.link?.includes('news.google.com')
-    const hasDirectLink = !isGoogleNews && !!item.link
-    const intro = hasDirectLink
-      ? 'WAŻNE: Najpierw otwórz poniższy link i przeczytaj pełną treść artykułu. Dopiero po zapoznaniu się z treścią '
-      : 'Wyszukaj poniższy artykuł w internecie, znajdź jego pełną treść i '
-    const reference = hasDirectLink ? item.link : item.title
-    const query = encodeURIComponent(intro + task + '\n\nArtykuł: ' + reference)
-    const perplexityUrl = `https://www.perplexity.ai/search?q=${query}`
-
-    const isAndroid = /Android/i.test(navigator.userAgent)
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
-
-    if (isAndroid) {
-      // Try Perplexity Comet app via intent; fall back to web after 1.5s
-      window.location.href = `intent://www.perplexity.ai/search?q=${query}#Intent;scheme=https;package=ai.perplexity.comet;end`
-      const onVisChange = () => {
-        if (document.hidden) {
-          clearTimeout(timer)
-          document.removeEventListener('visibilitychange', onVisChange)
-        }
-      }
-      const timer = setTimeout(() => {
-        document.removeEventListener('visibilitychange', onVisChange)
-        window.open(perplexityUrl, '_blank', 'noopener,noreferrer')
-      }, 1500)
-      document.addEventListener('visibilitychange', onVisChange)
-    } else if (isIOS) {
-      // Universal links — opens Perplexity app if installed, otherwise Safari
-      window.location.href = perplexityUrl
-    } else {
-      window.open(perplexityUrl, '_blank', 'noopener,noreferrer')
-    }
-
-    onClose()
+  function handleCopy(task: string, label: string) {
+    const text = 'Na podstawie tego artykułu ' + task + '\n\nArtykuł: ' + item.title
+    navigator.clipboard.writeText(text)
+    setCopied(label)
+    setTimeout(() => setCopied(null), 1500)
   }
 
   return (
@@ -142,43 +111,50 @@ export default function CometModal({ item, onClose }: Props) {
 
           {/* Actions */}
           <div className="flex flex-col gap-1.5 p-3">
-            {ACTIONS.map((action) => (
-              <button
-                key={action.label}
-                onClick={() => handleAction(action.task)}
-                className="flex items-center gap-3 px-3.5 py-3 text-left border rounded-sm transition-all duration-150"
-                style={{
-                  borderColor: 'var(--border)',
-                  backgroundColor: 'transparent',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--hover)'
-                  e.currentTarget.style.borderColor = 'var(--text-dim)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent'
-                  e.currentTarget.style.borderColor = 'var(--border)'
-                }}
-              >
-                <span className="text-[14px] shrink-0" style={{ color: 'var(--src-ECB)' }}>
-                  {action.icon}
-                </span>
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <span
-                    className="text-[11px] font-bold tracking-[0.12em]"
-                    style={{ color: 'var(--text-hi)' }}
-                  >
-                    {action.label}
+            {ACTIONS.map((action) => {
+              const isCopied = copied === action.label
+              return (
+                <button
+                  key={action.label}
+                  onClick={() => handleCopy(action.task, action.label)}
+                  className="flex items-center gap-3 px-3.5 py-3 text-left border rounded-sm transition-all duration-150"
+                  style={{
+                    borderColor: isCopied ? 'var(--src-FED)' : 'var(--border)',
+                    backgroundColor: 'transparent',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isCopied) {
+                      e.currentTarget.style.backgroundColor = 'var(--hover)'
+                      e.currentTarget.style.borderColor = 'var(--text-dim)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isCopied) {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.borderColor = 'var(--border)'
+                    }
+                  }}
+                >
+                  <span className="text-[14px] shrink-0" style={{ color: isCopied ? 'var(--src-FED)' : 'var(--src-ECB)' }}>
+                    {isCopied ? '✓' : action.icon}
                   </span>
-                  <span
-                    className="text-[10px]"
-                    style={{ color: 'var(--text-ui)' }}
-                  >
-                    {action.desc}
-                  </span>
-                </div>
-              </button>
-            ))}
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span
+                      className="text-[11px] font-bold tracking-[0.12em]"
+                      style={{ color: isCopied ? 'var(--src-FED)' : 'var(--text-hi)' }}
+                    >
+                      {isCopied ? 'SKOPIOWANO!' : action.label}
+                    </span>
+                    <span
+                      className="text-[10px]"
+                      style={{ color: 'var(--text-ui)' }}
+                    >
+                      {action.desc}
+                    </span>
+                  </div>
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>
