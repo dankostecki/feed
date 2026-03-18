@@ -51,16 +51,36 @@ export default function CometModal({ item, onClose }: Props) {
     const isGoogleNews = item.link?.includes('news.google.com')
     const hasDirectLink = !isGoogleNews && !!item.link
     const intro = hasDirectLink
-      ? 'Otwórz poniższy link, przeczytaj pełną treść artykułu i '
+      ? 'WAŻNE: Najpierw otwórz poniższy link i przeczytaj pełną treść artykułu. Dopiero po zapoznaniu się z treścią '
       : 'Wyszukaj poniższy artykuł w internecie, znajdź jego pełną treść i '
     const reference = hasDirectLink ? item.link : item.title
     const query = encodeURIComponent(intro + task + '\n\nArtykuł: ' + reference)
-    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent)
-    if (isMobile) {
+    const perplexityUrl = `https://www.perplexity.ai/search?q=${query}`
+
+    const isAndroid = /Android/i.test(navigator.userAgent)
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+    if (isAndroid) {
+      // Try Perplexity Comet app via intent; fall back to web after 1.5s
       window.location.href = `intent://www.perplexity.ai/search?q=${query}#Intent;scheme=https;package=ai.perplexity.comet;end`
+      const onVisChange = () => {
+        if (document.hidden) {
+          clearTimeout(timer)
+          document.removeEventListener('visibilitychange', onVisChange)
+        }
+      }
+      const timer = setTimeout(() => {
+        document.removeEventListener('visibilitychange', onVisChange)
+        window.open(perplexityUrl, '_blank', 'noopener,noreferrer')
+      }, 1500)
+      document.addEventListener('visibilitychange', onVisChange)
+    } else if (isIOS) {
+      // Universal links — opens Perplexity app if installed, otherwise Safari
+      window.location.href = perplexityUrl
     } else {
-      window.open(`https://www.perplexity.ai/search?q=${query}`, '_blank', 'noopener,noreferrer')
+      window.open(perplexityUrl, '_blank', 'noopener,noreferrer')
     }
+
     onClose()
   }
 
