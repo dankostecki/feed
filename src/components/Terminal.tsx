@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { fetchAllFeeds, NewsItem, Source } from '@/lib/rss'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { fetchAllFeeds, NewsItem, Source, relativeTime } from '@/lib/rss'
 import { SOURCE_COLOR, SOURCE_BG, SOURCE_BD } from '@/lib/feedMeta'
 import NewsCard from './NewsCard'
 import Column from './Column'
@@ -68,8 +68,11 @@ export default function Terminal() {
   const [settingsOpen,   setSettingsOpen]  = useState(false)
   const [searchQuery,    setSearchQuery]   = useState('')
   const [searchOpen,     setSearchOpen]    = useState(false)
+  const [headerVisible,  setHeaderVisible] = useState(true)
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const searchRef    = useRef<HTMLInputElement>(null)
+  const lastScrollY  = useRef(0)
+  const feedRef      = useRef<HTMLDivElement>(null)
 
   // Restore persisted state
   useEffect(() => {
@@ -120,7 +123,7 @@ export default function Terminal() {
     setTheme((t) => { const n = t === 'dark' ? 'light' : 'dark'; try { localStorage.setItem(THEME_KEY, n) } catch {}; return n })
   }
 
-  function handleSourceChange(s: Filter) { setSourceFilter(s); setSubFilters(new Set()) }
+  function handleSourceChange(s: Filter) { setSourceFilter(s); setSubFilters(new Set()); scrollToTop() }
   function handleSubFilterToggle(label: string) {
     setSubFilters((p) => { const n = new Set(p); n.has(label) ? n.delete(label) : n.add(label); return n })
   }
@@ -133,13 +136,34 @@ export default function Terminal() {
   function clearBookmarks() { setBookmarkIds(new Set()); try { localStorage.removeItem(BOOKMARK_KEY)  } catch {} }
   function clearAll()       { clearRead(); clearBookmarks(); try { localStorage.removeItem(VIEW_KEY); localStorage.removeItem(THEME_KEY) } catch {} }
 
+  // ── Twitter/X-like scroll: hide header on scroll down, show on scroll up ──
+  useEffect(() => {
+    if (viewMode === 'COLUMNS') return // columns view doesn't scroll the page
+    const threshold = 10
+    function onScroll() {
+      const y = window.scrollY
+      if (y < 60) { setHeaderVisible(true); lastScrollY.current = y; return }
+      if (y - lastScrollY.current > threshold) setHeaderVisible(false)
+      else if (lastScrollY.current - y > threshold) setHeaderVisible(true)
+      lastScrollY.current = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [viewMode])
+
+  // ── Scroll to top helper ──
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setHeaderVisible(true)
+  }, [])
+
   // Focus search on Ctrl+K or /  (when not typing in another input)
   useEffect(() => {
     function handler(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); searchRef.current?.focus() }
-      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus() }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 100) }
+      if (e.key === '/') { e.preventDefault(); setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 100) }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
@@ -214,11 +238,12 @@ export default function Terminal() {
       />
 
       {/* ── HEADER ── */}
-      <header className="flex-shrink-0 z-30"
+      <header className="flex-shrink-0 z-30 transition-transform duration-300"
         style={{
           backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(8px)',
           borderBottom: '1px solid var(--border)',
           position: isColumns ? 'relative' : 'sticky', top: isColumns ? undefined : 0,
+          transform: (!isColumns && !headerVisible) ? 'translateY(-100%)' : 'translateY(0)',
         }}
       >
         {/* Strip 1: branding + controls */}
@@ -260,18 +285,6 @@ export default function Terminal() {
               </Btn>
             </span>
 
-            {/* Search toggle — mobile only */}
-            <button onClick={() => { setSearchOpen((v) => !v); if (!searchOpen) setTimeout(() => searchRef.current?.focus(), 100) }} title="Search"
-              className="flex sm:hidden items-center px-2 py-1.5 border rounded-sm transition-all duration-150"
-              style={searchOpen
-                ? { color: 'var(--src-ECB)', borderColor: 'var(--src-ECB)', backgroundColor: 'var(--src-ECB-bg)' }
-                : { color: 'var(--text-ui)', borderColor: 'var(--border)' }
-              }>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-              </svg>
-            </button>
-
             {/* Refresh */}
             <Btn onClick={loadFeeds} disabled={loading} title="Fetch now">
               <svg style={{ width: 11, height: 11 }} className={loading ? 'animate-spin' : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -302,51 +315,7 @@ export default function Terminal() {
           </div>
         </div>
 
-        {/* Strip 2: Search — always on desktop, toggle on mobile */}
-        <div className={`${searchOpen ? 'flex' : 'hidden'} sm:flex items-center gap-2 px-3 sm:px-4 py-2`} style={{ borderBottom: '1px solid var(--border-dim)' }}>
-          {/* Search icon */}
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)', flexShrink: 0 }}>
-            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-          </svg>
-
-          <input
-            ref={searchRef}
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Escape') { setSearchQuery(''); searchRef.current?.blur() } }}
-            placeholder="SEARCH… (Ctrl+K or /)"
-            className="flex-1 bg-transparent font-mono text-[11px] outline-none min-w-0"
-            style={{
-              color: 'var(--text-hi)',
-              caretColor: 'var(--src-NBP)',
-              '::placeholder': { color: 'var(--text-dim)' },
-            } as React.CSSProperties}
-            spellCheck={false}
-            autoComplete="off"
-          />
-
-          {/* Match count */}
-          {q && (
-            <span className="font-mono text-[10px] shrink-0" style={{ color: gridFiltered.length > 0 ? 'var(--src-NBP)' : 'var(--src-FED-fomc)' }}>
-              {isColumns
-                ? `${items.filter((i) => matchesSearch(i, q)).length} hits`
-                : `${gridFiltered.length} hits`}
-            </span>
-          )}
-
-          {/* Clear */}
-          {q && (
-            <button onClick={() => { setSearchQuery(''); searchRef.current?.focus() }}
-              className="font-mono text-[11px] shrink-0 transition-opacity"
-              style={{ color: 'var(--text-ui)' }}>
-              ✕
-            </button>
-          )}
-        </div>
-
-        {/* Strip 3: GRID filters */}
+        {/* Strip 2: GRID filters */}
         {!isColumns && (
           <div className="px-3 sm:px-4 py-2.5">
             <FilterBar source={sourceFilter} subFilters={subFilters} counts={counts} subCounts={subCounts}
@@ -407,7 +376,7 @@ export default function Terminal() {
 
       {/* ── GRID VIEW ── */}
       {!isColumns && (
-        <main className="flex-1 p-2 sm:p-3 pb-10">
+        <main className="flex-1 p-2 sm:p-3 pb-16">
           {!initialLoaded && loading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
               {Array.from({ length: 16 }).map((_, i) => (
@@ -454,11 +423,130 @@ export default function Terminal() {
         </main>
       )}
 
+      {/* ── SEARCH OVERLAY ── */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: 'var(--bg)', opacity: 0.98 }}>
+          <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)', flexShrink: 0 }}>
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              ref={searchRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Escape') { setSearchQuery(''); setSearchOpen(false) } }}
+              placeholder="SEARCH…"
+              className="flex-1 bg-transparent font-mono text-[13px] outline-none min-w-0"
+              style={{ color: 'var(--text-hi)', caretColor: 'var(--src-NBP)' }}
+              spellCheck={false}
+              autoComplete="off"
+              autoFocus
+            />
+            {q && (
+              <span className="font-mono text-[11px] shrink-0" style={{ color: gridFiltered.length > 0 ? 'var(--src-NBP)' : 'var(--src-FED-fomc)' }}>
+                {isColumns
+                  ? `${items.filter((i) => matchesSearch(i, q)).length} hits`
+                  : `${gridFiltered.length} hits`}
+              </span>
+            )}
+            <button onClick={() => { setSearchQuery(''); setSearchOpen(false) }}
+              className="font-mono text-[12px] px-2 py-1 border rounded-sm"
+              style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>
+              ✕
+            </button>
+          </div>
+          {/* Search results preview */}
+          <div className="flex-1 overflow-y-auto p-3">
+            {q && gridFiltered.length > 0 && (
+              <div className="flex flex-col gap-1">
+                {(isColumns ? items.filter((i) => matchesSearch(i, q)) : gridFiltered).slice(0, 20).map((item) => (
+                  <button key={item.id} onClick={() => {
+                    markAsRead(item.id)
+                    setSearchOpen(false)
+                    if (item.link.includes('news.google.com')) {
+                      const cleanTitle = item.title.replace(/\s*-\s*(Bloomberg|Reuters)$/i, '')
+                      window.open(`https://www.google.com/search?q=${encodeURIComponent(cleanTitle)}`, '_blank', 'noopener,noreferrer')
+                    } else {
+                      window.open(item.link, '_blank', 'noopener,noreferrer')
+                    }
+                  }}
+                    className="flex items-center gap-3 px-3 py-2.5 text-left rounded-sm transition-colors"
+                    style={{ borderBottom: '1px solid var(--border-dim)' }}
+                  >
+                    <span className="text-[10px] font-bold font-mono tracking-wider shrink-0" style={{ color: SOURCE_COLOR[item.source] }}>{item.source}</span>
+                    <span className="text-[12px] font-mono line-clamp-1" style={{ color: 'var(--text-hi)' }}>{item.title}</span>
+                    <span className="text-[10px] font-mono shrink-0" style={{ color: 'var(--text-lo)' }}>{relativeTime(item.pubDate)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {q && gridFiltered.length === 0 && (
+              <div className="flex items-center justify-center py-20">
+                <span className="font-mono text-[12px] tracking-widest" style={{ color: 'var(--text-dim)' }}>NO RESULTS</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── BOTTOM NAV BAR (Twitter/X style) ── */}
+      {!isColumns && (
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around transition-transform duration-300"
+          style={{
+            backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(12px)',
+            borderTop: '1px solid var(--border)',
+            transform: headerVisible ? 'translateY(0)' : 'translateY(100%)',
+            height: '48px',
+          }}
+        >
+          {/* Home — scroll to top */}
+          <button onClick={scrollToTop} title="Home"
+            className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
+            style={{ color: 'var(--text-ui)' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </button>
+
+          {/* Search — opens search overlay */}
+          <button onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 100) }} title="Search"
+            className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
+            style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+          </button>
+
+          {/* Refresh */}
+          <button onClick={loadFeeds} disabled={loading} title="Refresh"
+            className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
+            style={{ color: loading ? 'var(--text-dim)' : 'var(--text-ui)' }}>
+            <svg width="20" height="20" className={loading ? 'animate-spin' : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 12a9 9 0 11-6.219-8.56" />
+            </svg>
+          </button>
+
+          {/* Settings */}
+          <button onClick={() => setSettingsOpen(true)} title="Settings"
+            className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
+            style={{ color: 'var(--text-ui)' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
+            </svg>
+          </button>
+        </nav>
+      )}
+
       <StatusBar
         totalItems={items.length}
         visibleItems={isColumns ? items.length : gridFiltered.length}
         loading={loading} lastUpdated={lastUpdated}
         errors={errors} autoRefresh={autoRefresh}
+        hidden={!isColumns}
       />
     </div>
   )
