@@ -17,6 +17,10 @@ interface Props {
   viewMode?: 'GRID' | 'COLUMNS'
   onViewModeChange?: (v: 'GRID' | 'COLUMNS') => void
   onShowSaved?: () => void
+  onScrollToTop?: () => void
+  onSearch?: () => void
+  onRefresh?: () => void
+  loading?: boolean
 }
 
 function Row({ label, value, action, actionLabel, danger = false }: {
@@ -68,6 +72,7 @@ export default function SettingsDrawer({
   onClearRead, onClearBookmarks, onClearAll,
   onThemeToggle, onAutoRefreshToggle,
   viewMode, onViewModeChange, onShowSaved,
+  onScrollToTop, onSearch, onRefresh, loading,
 }: Props) {
   // Close on Escape
   useEffect(() => {
@@ -125,6 +130,45 @@ export default function SettingsDrawer({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-6">
+
+          {/* Quick actions — Home, Search, Refresh (useful when bottom nav is hidden by Chrome) */}
+          {(onScrollToTop || onSearch || onRefresh) && (
+            <Section title="Quick Actions">
+              <div className="flex items-center gap-2 py-2.5" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+                {onScrollToTop && (
+                  <button onClick={() => { onScrollToTop(); onClose() }}
+                    className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
+                    style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    HOME
+                  </button>
+                )}
+                {onSearch && (
+                  <button onClick={() => { onSearch(); onClose() }}
+                    className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
+                    style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    SEARCH
+                  </button>
+                )}
+                {onRefresh && (
+                  <button onClick={() => { onRefresh(); onClose() }}
+                    disabled={loading}
+                    className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
+                    style={{ color: loading ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)' }}>
+                    <svg width="13" height="13" className={loading ? 'animate-spin' : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 12a9 9 0 11-6.219-8.56" />
+                    </svg>
+                    {loading ? 'SYNC…' : 'REFRESH'}
+                  </button>
+                )}
+              </div>
+            </Section>
+          )}
 
           {/* Controls — view mode + bookmarks */}
           {viewMode && onViewModeChange && (
