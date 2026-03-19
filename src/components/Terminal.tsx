@@ -69,13 +69,12 @@ export default function Terminal() {
   const [searchQuery,    setSearchQuery]   = useState('')
   const [searchOpen,     setSearchOpen]    = useState(false)
   const [headerVisible,  setHeaderVisible] = useState(true)
-  const [headerHeight,   setHeaderHeight]  = useState(0)
-  const [bottomOffset,   setBottomOffset]  = useState(0)
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const searchRef    = useRef<HTMLInputElement>(null)
   const lastScrollY  = useRef(0)
   const feedRef      = useRef<HTMLDivElement>(null)
   const headerRef    = useRef<HTMLElement>(null)
+  const scrollRef    = useRef<HTMLDivElement>(null)
 
   // Restore persisted state
   useEffect(() => {
@@ -139,52 +138,28 @@ export default function Terminal() {
   function clearBookmarks() { setBookmarkIds(new Set()); try { localStorage.removeItem(BOOKMARK_KEY)  } catch {} }
   function clearAll()       { clearRead(); clearBookmarks(); try { localStorage.removeItem(VIEW_KEY); localStorage.removeItem(THEME_KEY) } catch {} }
 
-  // ── Measure header height for spacer ──
-  useEffect(() => {
-    const el = headerRef.current
-    if (!el) return
-    const ro = new ResizeObserver(() => setHeaderHeight(el.offsetHeight))
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
-  // ── Chrome mobile: detect bottom browser chrome via visualViewport ──
-  useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return
-    function update() {
-      // difference between layout viewport and visual viewport = browser chrome height
-      const offset = window.innerHeight - vv!.height
-      setBottomOffset(Math.max(0, Math.round(offset)))
-    }
-    update()
-    vv.addEventListener('resize', update)
-    // also recheck on page load / orientation change
-    window.addEventListener('resize', update)
-    return () => {
-      vv.removeEventListener('resize', update)
-      window.removeEventListener('resize', update)
-    }
-  }, [])
-
   // ── Twitter/X-like scroll: hide header on scroll down, show on scroll up ──
   useEffect(() => {
-    if (viewMode === 'COLUMNS') return // columns view doesn't scroll the page
+    if (viewMode === 'COLUMNS') return
+    const el = scrollRef.current
+    if (!el) return
     const threshold = 10
     function onScroll() {
-      const y = window.scrollY
+      const y = el!.scrollTop
       if (y < 60) { setHeaderVisible(true); lastScrollY.current = y; return }
       if (y - lastScrollY.current > threshold) setHeaderVisible(false)
       else if (lastScrollY.current - y > threshold) setHeaderVisible(true)
       lastScrollY.current = y
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
   }, [viewMode])
 
   // ── Scroll to top helper ──
   const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' })
+    const el = scrollRef.current
+    if (el) el.scrollTo({ top: 0, behavior: 'instant' })
+    else window.scrollTo({ top: 0, behavior: 'instant' })
     lastScrollY.current = 0
     setHeaderVisible(true)
   }, [])
@@ -242,9 +217,8 @@ export default function Terminal() {
       className="font-mono flex flex-col"
       style={{
         backgroundColor: 'var(--bg)', color: 'var(--text-hi)',
-        height: isColumns ? '100dvh' : undefined,
-        minHeight: isColumns ? undefined : '100dvh',
-        overflow: isColumns ? 'hidden' : undefined,
+        height: '100dvh',
+        overflow: 'hidden',
       }}
     >
       {/* Subtle vignette — dark only, no scanlines */}
@@ -270,12 +244,11 @@ export default function Terminal() {
       />
 
       {/* ── HEADER ── */}
-      <header ref={headerRef} className="flex-shrink-0 z-30 transition-transform duration-300"
+      <header ref={headerRef} className="flex-shrink-0 z-30 transition-all duration-300 overflow-hidden"
         style={{
           backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(8px)',
           borderBottom: '1px solid var(--border)',
-          position: isColumns ? 'relative' : 'fixed', top: 0, left: 0, right: 0,
-          transform: (!isColumns && !headerVisible) ? 'translateY(-100%)' : 'translateY(0)',
+          maxHeight: (!isColumns && !headerVisible) ? '0px' : '200px',
         }}
       >
         {/* Strip 1: branding + controls */}
@@ -380,9 +353,6 @@ export default function Terminal() {
 
       </header>
 
-      {/* Spacer for fixed header in GRID view */}
-      {!isColumns && <div style={{ height: headerHeight }} />}
-
       {/* ── COLUMN VIEW ── */}
       {isColumns && (
         <div className="flex flex-1 overflow-x-auto overflow-y-hidden min-h-0 no-scrollbar">
@@ -411,7 +381,8 @@ export default function Terminal() {
 
       {/* ── GRID VIEW ── */}
       {!isColumns && (
-        <main className="flex-1 p-2 sm:p-3 pb-24">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
+        <main className="p-2 sm:p-3 pb-4">
           {!initialLoaded && loading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
               {Array.from({ length: 16 }).map((_, i) => (
@@ -456,22 +427,18 @@ export default function Terminal() {
             </div>
           )}
         </main>
+        </div>
       )}
 
-      {/* ── BOTTOM NAV BAR (Twitter/X style) ── */}
+      {/* ── BOTTOM NAV BAR ── */}
       {!isColumns && (
-        <div className="fixed left-0 right-0 z-40 transition-all duration-300"
-          style={{
-            bottom: bottomOffset,
-            transform: headerVisible ? 'translateY(0)' : 'translateY(calc(100% + ' + bottomOffset + 'px))',
-          }}>
+        <div className="flex-shrink-0">
 
           {/* Search bar — slides up above nav when open */}
           {searchOpen && (
             <div className="flex items-center gap-2 px-3 py-2"
               style={{
-                backgroundColor: isDark ? 'rgba(7,12,18,0.55)' : 'rgba(238,242,247,0.55)',
-                backdropFilter: 'saturate(180%) blur(16px)', WebkitBackdropFilter: 'saturate(180%) blur(16px)',
+                backgroundColor: 'var(--bg)',
                 borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border-dim)',
               }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -510,8 +477,7 @@ export default function Terminal() {
           <nav
             className="flex items-center justify-around"
             style={{
-              backgroundColor: isDark ? 'rgba(7,12,18,0.5)' : 'rgba(238,242,247,0.5)',
-              backdropFilter: 'saturate(180%) blur(16px)', WebkitBackdropFilter: 'saturate(180%) blur(16px)',
+              backgroundColor: 'var(--bg)',
               borderTop: '1px solid var(--border)',
               height: 'calc(48px + env(safe-area-inset-bottom, 0px))',
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
