@@ -153,7 +153,8 @@ export default function Terminal() {
 
   // ── Scroll to top helper ──
   const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    lastScrollY.current = 0
     setHeaderVisible(true)
   }, [])
 
@@ -162,8 +163,8 @@ export default function Terminal() {
     function handler(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 100) }
-      if (e.key === '/') { e.preventDefault(); setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 100) }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true); scrollToTop(); setTimeout(() => searchRef.current?.focus(), 100) }
+      if (e.key === '/') { e.preventDefault(); setSearchOpen(true); scrollToTop(); setTimeout(() => searchRef.current?.focus(), 100) }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
@@ -431,7 +432,7 @@ export default function Terminal() {
           {/* Search bar — slides up above nav when open */}
           {searchOpen && (
             <div className="flex items-center gap-2 px-3 py-2"
-              style={{ backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border-dim)' }}>
+              style={{ background: 'color-mix(in srgb, var(--bg) 80%, transparent)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border-dim)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                 style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)', flexShrink: 0 }}>
                 <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
@@ -468,7 +469,8 @@ export default function Terminal() {
           <nav
             className="flex items-center justify-around"
             style={{
-              backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(12px)',
+              background: 'color-mix(in srgb, var(--bg) 75%, transparent)',
+              backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
               borderTop: '1px solid var(--border)',
               height: '48px',
             }}
@@ -483,7 +485,7 @@ export default function Terminal() {
             </button>
 
             {/* Search toggle */}
-            <button onClick={() => { setSearchOpen((v) => { if (!v) setTimeout(() => searchRef.current?.focus(), 100); return !v }); if (searchOpen) setSearchQuery('') }} title="Search"
+            <button onClick={() => { setSearchOpen((v) => { if (!v) { scrollToTop(); setTimeout(() => searchRef.current?.focus(), 100) }; return !v }); if (searchOpen) setSearchQuery('') }} title="Search"
               className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
               style={{ color: (searchOpen || q) ? 'var(--src-ECB)' : 'var(--text-ui)' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
