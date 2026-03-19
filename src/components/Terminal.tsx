@@ -391,7 +391,7 @@ export default function Terminal() {
 
       {/* ── GRID VIEW ── */}
       {!isColumns && (
-        <main className="flex-1 p-2 sm:p-3 pb-16">
+        <main className="flex-1 p-2 sm:p-3 pb-24">
           {!initialLoaded && loading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
               {Array.from({ length: 16 }).map((_, i) => (
@@ -441,7 +441,7 @@ export default function Terminal() {
       {/* ── BOTTOM NAV BAR (Twitter/X style) ── */}
       {!isColumns && (
         <div className="fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300"
-          style={{ transform: headerVisible ? 'translateY(0)' : 'translateY(100%)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          style={{ transform: headerVisible ? 'translateY(0)' : 'translateY(100%)' }}>
 
           {/* Search bar — slides up above nav when open */}
           {searchOpen && (
@@ -490,7 +490,7 @@ export default function Terminal() {
               backgroundColor: isDark ? 'rgba(7,12,18,0.5)' : 'rgba(238,242,247,0.5)',
               backdropFilter: 'saturate(180%) blur(16px)', WebkitBackdropFilter: 'saturate(180%) blur(16px)',
               borderTop: '1px solid var(--border)',
-              height: '48px',
+              height: 'calc(48px + env(safe-area-inset-bottom, 0px))',
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             }}
           >
