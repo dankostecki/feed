@@ -108,7 +108,7 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
 
         {/* Title — full width */}
         <h3
-          className="text-[13px] font-semibold leading-snug line-clamp-3 font-mono"
+          className="text-[14px] font-semibold leading-snug line-clamp-3 font-mono"
           style={{ color: read ? 'var(--text-lo)' : 'var(--text-hi)' }}
         >
           {item.title}
