@@ -69,10 +69,12 @@ export default function Terminal() {
   const [searchQuery,    setSearchQuery]   = useState('')
   const [searchOpen,     setSearchOpen]    = useState(false)
   const [headerVisible,  setHeaderVisible] = useState(true)
+  const [headerHeight,   setHeaderHeight]  = useState(0)
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const searchRef    = useRef<HTMLInputElement>(null)
   const lastScrollY  = useRef(0)
   const feedRef      = useRef<HTMLDivElement>(null)
+  const headerRef    = useRef<HTMLElement>(null)
 
   // Restore persisted state
   useEffect(() => {
@@ -135,6 +137,15 @@ export default function Terminal() {
   function clearRead()      { setReadIds(new Set());      try { localStorage.removeItem(READ_KEY)     } catch {} }
   function clearBookmarks() { setBookmarkIds(new Set()); try { localStorage.removeItem(BOOKMARK_KEY)  } catch {} }
   function clearAll()       { clearRead(); clearBookmarks(); try { localStorage.removeItem(VIEW_KEY); localStorage.removeItem(THEME_KEY) } catch {} }
+
+  // ── Measure header height for spacer ──
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setHeaderHeight(el.offsetHeight))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   // ── Twitter/X-like scroll: hide header on scroll down, show on scroll up ──
   useEffect(() => {
@@ -239,11 +250,11 @@ export default function Terminal() {
       />
 
       {/* ── HEADER ── */}
-      <header className="flex-shrink-0 z-30 transition-transform duration-300"
+      <header ref={headerRef} className="flex-shrink-0 z-30 transition-transform duration-300"
         style={{
           backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(8px)',
           borderBottom: '1px solid var(--border)',
-          position: isColumns ? 'relative' : 'sticky', top: isColumns ? undefined : 0,
+          position: isColumns ? 'relative' : 'fixed', top: 0, left: 0, right: 0,
           transform: (!isColumns && !headerVisible) ? 'translateY(-100%)' : 'translateY(0)',
         }}
       >
@@ -348,6 +359,9 @@ export default function Terminal() {
         )}
 
       </header>
+
+      {/* Spacer for fixed header in GRID view */}
+      {!isColumns && <div style={{ height: headerHeight }} />}
 
       {/* ── COLUMN VIEW ── */}
       {isColumns && (
