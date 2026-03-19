@@ -106,52 +106,47 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
           </time>
         </div>
 
-        {/* Title + action column on right */}
-        <div className="flex items-start gap-2">
-          <h3
-            className="flex-1 text-[13px] font-semibold leading-snug line-clamp-3 font-mono"
-            style={{ color: read ? 'var(--text-lo)' : 'var(--text-hi)' }}
-          >
-            {item.title}
-          </h3>
+        {/* Title — full width */}
+        <h3
+          className="text-[13px] font-semibold leading-snug line-clamp-3 font-mono"
+          style={{ color: read ? 'var(--text-lo)' : 'var(--text-hi)' }}
+        >
+          {item.title}
+        </h3>
 
-          {/* Vertical action strip — stacked comet + copy */}
-          <div className="flex flex-col items-center gap-1 shrink-0">
-            <button
-              onClick={handleComet}
-              title="Comet AI"
-              className="flex items-center justify-center w-8 h-7 rounded-sm transition-all duration-150 active:scale-95"
-              style={{ color: 'var(--text-ui)' }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 20l7-7"/><path d="M14 4l6 6-8 8-6-6z"/><path d="M18 2l4 4"/>
-              </svg>
-            </button>
-            <button
-              onClick={handleCopy}
-              title={copied ? 'Copied!' : 'Copy title'}
-              className="flex items-center justify-center w-8 h-7 rounded-sm transition-all duration-150 active:scale-95"
-              style={{ color: copied ? '#34d399' : 'var(--text-ui)' }}
-            >
-              {copied ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6L9 17l-5-5"/>
-                </svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Timestamp */}
+        {/* Bottom row: timestamp …… comet, copy */}
         <div
-          className="pt-1.5 mt-auto font-mono text-[10px]"
+          className="flex items-center gap-2 pt-1.5 mt-auto font-mono text-[10px]"
           style={{ borderTop: '1px solid var(--border-dim)', color: 'var(--text-lo)' }}
         >
-          {abs}
+          <span>{abs}</span>
+          <div className="flex-1" />
+          <button
+            onClick={handleComet}
+            title="Comet AI"
+            className="flex items-center justify-center w-7 h-6 rounded-sm transition-all duration-150 active:scale-95"
+            style={{ color: 'var(--text-ui)' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 20l7-7"/><path d="M14 4l6 6-8 8-6-6z"/><path d="M18 2l4 4"/>
+            </svg>
+          </button>
+          <button
+            onClick={handleCopy}
+            title={copied ? 'Copied!' : 'Copy title'}
+            className="flex items-center justify-center w-7 h-6 rounded-sm transition-all duration-150 active:scale-95"
+            style={{ color: copied ? '#34d399' : 'var(--text-ui)' }}
+          >
+            {copied ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
