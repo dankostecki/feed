@@ -7,16 +7,17 @@ interface Props {
   lastUpdated: Date | null
   errors: { feed: string; message: string }[]
   autoRefresh: boolean
+  hidden?: boolean
 }
 
-export default function StatusBar({ totalItems, visibleItems, loading, lastUpdated, errors, autoRefresh }: Props) {
+export default function StatusBar({ totalItems, visibleItems, loading, lastUpdated, errors, autoRefresh, hidden }: Props) {
   const updatedStr = lastUpdated
     ? lastUpdated.toISOString().replace('T', ' ').slice(0, 19) + ' UTC'
     : '—'
 
   return (
     <footer
-      className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-sm"
+      className={`fixed bottom-0 left-0 right-0 z-50 backdrop-blur-sm ${hidden ? 'hidden' : ''}`}
       style={{ backgroundColor: 'var(--status-bg)', borderTop: '1px solid var(--border)' }}
     >
       <div className="flex items-center justify-between px-4 py-1 gap-4">
