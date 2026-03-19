@@ -56,7 +56,8 @@ export default function CometModal({ item, onClose }: Props) {
   }, [onClose, selected])
 
   function handleSelect(task: string, label: string) {
-    const text = 'Na podstawie tego artykułu ' + task + '\n\nArtykuł: ' + item.title
+    const link = getArticleLink(item)
+    const text = item.title + (link !== '#' ? '\n' + link : '') + '\n\nNa podstawie tego artykułu ' + task
     navigator.clipboard.writeText(text)
     setSelected(label)
     setCopied(true)
