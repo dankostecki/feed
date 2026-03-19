@@ -446,7 +446,7 @@ export default function Terminal() {
           {/* Search bar — slides up above nav when open */}
           {searchOpen && (
             <div className="flex items-center gap-2 px-3 py-2"
-              style={{ background: 'color-mix(in srgb, var(--bg) 80%, transparent)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border-dim)' }}>
+              style={{ backgroundColor: isDark ? 'rgba(7,12,18,0.7)' : 'rgba(238,242,247,0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border-dim)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                 style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)', flexShrink: 0 }}>
                 <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
@@ -483,8 +483,8 @@ export default function Terminal() {
           <nav
             className="flex items-center justify-around"
             style={{
-              background: 'color-mix(in srgb, var(--bg) 75%, transparent)',
-              backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+              backgroundColor: isDark ? 'rgba(7,12,18,0.65)' : 'rgba(238,242,247,0.7)',
+              backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
               borderTop: '1px solid var(--border)',
               height: '48px',
             }}
