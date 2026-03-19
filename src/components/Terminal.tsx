@@ -447,8 +447,8 @@ export default function Terminal() {
           {searchOpen && (
             <div className="flex items-center gap-2 px-3 py-2"
               style={{
-                background: isDark ? 'rgba(7,12,18,0.9)' : 'rgba(238,242,247,0.9)',
-                backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+                backgroundColor: isDark ? 'rgba(7,12,18,0.55)' : 'rgba(238,242,247,0.55)',
+                backdropFilter: 'saturate(180%) blur(16px)', WebkitBackdropFilter: 'saturate(180%) blur(16px)',
                 borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border-dim)',
               }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -487,10 +487,8 @@ export default function Terminal() {
           <nav
             className="flex items-center justify-around"
             style={{
-              background: isDark
-                ? 'linear-gradient(to top, rgba(7,12,18,0.92), rgba(7,12,18,0.78))'
-                : 'linear-gradient(to top, rgba(238,242,247,0.92), rgba(238,242,247,0.82))',
-              backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+              backgroundColor: isDark ? 'rgba(7,12,18,0.5)' : 'rgba(238,242,247,0.5)',
+              backdropFilter: 'saturate(180%) blur(16px)', WebkitBackdropFilter: 'saturate(180%) blur(16px)',
               borderTop: '1px solid var(--border)',
               height: '48px',
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
