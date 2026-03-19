@@ -70,6 +70,7 @@ export default function Terminal() {
   const [searchOpen,     setSearchOpen]    = useState(false)
   const [headerVisible,  setHeaderVisible] = useState(true)
   const [headerHeight,   setHeaderHeight]  = useState(0)
+  const [bottomOffset,   setBottomOffset]  = useState(0)
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const searchRef    = useRef<HTMLInputElement>(null)
   const lastScrollY  = useRef(0)
@@ -145,6 +146,25 @@ export default function Terminal() {
     const ro = new ResizeObserver(() => setHeaderHeight(el.offsetHeight))
     ro.observe(el)
     return () => ro.disconnect()
+  }, [])
+
+  // ── Chrome mobile: detect bottom browser chrome via visualViewport ──
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    function update() {
+      // difference between layout viewport and visual viewport = browser chrome height
+      const offset = window.innerHeight - vv!.height
+      setBottomOffset(Math.max(0, Math.round(offset)))
+    }
+    update()
+    vv.addEventListener('resize', update)
+    // also recheck on page load / orientation change
+    window.addEventListener('resize', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      window.removeEventListener('resize', update)
+    }
   }, [])
 
   // ── Twitter/X-like scroll: hide header on scroll down, show on scroll up ──
@@ -440,8 +460,11 @@ export default function Terminal() {
 
       {/* ── BOTTOM NAV BAR (Twitter/X style) ── */}
       {!isColumns && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300"
-          style={{ transform: headerVisible ? 'translateY(0)' : 'translateY(100%)' }}>
+        <div className="fixed left-0 right-0 z-40 transition-all duration-300"
+          style={{
+            bottom: bottomOffset,
+            transform: headerVisible ? 'translateY(0)' : 'translateY(calc(100% + ' + bottomOffset + 'px))',
+          }}>
 
           {/* Search bar — slides up above nav when open */}
           {searchOpen && (
