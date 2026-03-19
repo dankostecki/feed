@@ -68,7 +68,7 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
       )}
 
       <div className="flex flex-col gap-2 p-3">
-        {/* Row 1: tag + time */}
+        {/* Row 1: tag + bookmark + time */}
         <div className="flex items-center gap-2">
           <span
             className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold tracking-widest rounded-sm border font-mono shrink-0"
@@ -84,6 +84,18 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
 
           <div className="flex-1" />
 
+          {/* Bookmark */}
+          <button
+            onClick={handleBookmark}
+            title={bookmarked ? 'Remove bookmark' : 'Save for later'}
+            className="shrink-0 flex items-center justify-center transition-all duration-150 hover:scale-110"
+            style={{ color: bookmarked ? 'var(--src-FED)' : 'var(--text-dim)' }}
+          >
+            <svg width="13" height="14" viewBox="0 0 13 16" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
+              <path d="M1 1.5A0.5 0.5 0 011.5 1h10a0.5 0.5 0 01.5.5v13.15a.5.5 0 01-.8.4L6.5 11.8 1.8 15.05a.5.5 0 01-.8-.4V1.5z"/>
+            </svg>
+          </button>
+
           <time
             dateTime={item.pubDate.toISOString()}
             title={abs}
@@ -94,79 +106,52 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
           </time>
         </div>
 
-        {/* Title */}
-        <h3
-          className="text-[13px] font-semibold leading-snug line-clamp-3 font-mono"
-          style={{ color: read ? 'var(--text-lo)' : 'var(--text-hi)' }}
-        >
-          {item.title}
-        </h3>
+        {/* Title + action column on right */}
+        <div className="flex items-start gap-2">
+          <h3
+            className="flex-1 text-[13px] font-semibold leading-snug line-clamp-3 font-mono"
+            style={{ color: read ? 'var(--text-lo)' : 'var(--text-hi)' }}
+          >
+            {item.title}
+          </h3>
 
-        {/* Action bar — large tap targets */}
+          {/* Vertical action strip — stacked comet + copy */}
+          <div className="flex flex-col items-center gap-1 shrink-0">
+            <button
+              onClick={handleComet}
+              title="Comet AI"
+              className="flex items-center justify-center w-8 h-7 rounded-sm transition-all duration-150 active:scale-95"
+              style={{ color: 'var(--text-ui)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 20l7-7"/><path d="M14 4l6 6-8 8-6-6z"/><path d="M18 2l4 4"/>
+              </svg>
+            </button>
+            <button
+              onClick={handleCopy}
+              title={copied ? 'Copied!' : 'Copy title'}
+              className="flex items-center justify-center w-8 h-7 rounded-sm transition-all duration-150 active:scale-95"
+              style={{ color: copied ? '#34d399' : 'var(--text-ui)' }}
+            >
+              {copied ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Timestamp */}
         <div
-          className="flex items-center gap-1 pt-1.5 mt-auto"
-          style={{ borderTop: '1px solid var(--border-dim)' }}
+          className="pt-1.5 mt-auto font-mono text-[10px]"
+          style={{ borderTop: '1px solid var(--border-dim)', color: 'var(--text-lo)' }}
         >
-          {/* Comet AI */}
-          <button
-            onClick={handleComet}
-            title="Comet AI"
-            className="flex items-center justify-center rounded-sm transition-all duration-150 active:scale-95"
-            style={{
-              width: 36, height: 32,
-              color: 'var(--text-ui)',
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 20l7-7"/><path d="M14 4l6 6-8 8-6-6z"/><path d="M18 2l4 4"/>
-            </svg>
-          </button>
-
-          {/* Copy title */}
-          <button
-            onClick={handleCopy}
-            title={copied ? 'Copied!' : 'Copy title'}
-            className="flex items-center justify-center rounded-sm transition-all duration-150 active:scale-95"
-            style={{
-              width: 36, height: 32,
-              color: copied ? '#34d399' : 'var(--text-ui)',
-            }}
-          >
-            {copied ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6L9 17l-5-5"/>
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-              </svg>
-            )}
-          </button>
-
-          {/* Bookmark */}
-          <button
-            onClick={handleBookmark}
-            title={bookmarked ? 'Remove bookmark' : 'Save for later'}
-            className="flex items-center justify-center rounded-sm transition-all duration-150 active:scale-95"
-            style={{
-              width: 36, height: 32,
-              color: bookmarked ? 'var(--src-FED)' : 'var(--text-ui)',
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 13 16" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
-              <path d="M1 1.5A0.5 0.5 0 011.5 1h10a0.5 0.5 0 01.5.5v13.15a.5.5 0 01-.8.4L6.5 11.8 1.8 15.05a.5.5 0 01-.8-.4V1.5z"/>
-            </svg>
-          </button>
-
-          <div className="flex-1" />
-
-          {/* Timestamp */}
-          <span
-            className="font-mono text-[10px]"
-            style={{ color: 'var(--text-lo)' }}
-          >
-            {abs}
-          </span>
+          {abs}
         </div>
       </div>
 
