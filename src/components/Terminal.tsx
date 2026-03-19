@@ -441,12 +441,16 @@ export default function Terminal() {
       {/* ── BOTTOM NAV BAR (Twitter/X style) ── */}
       {!isColumns && (
         <div className="fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300"
-          style={{ transform: headerVisible ? 'translateY(0)' : 'translateY(100%)' }}>
+          style={{ transform: headerVisible ? 'translateY(0)' : 'translateY(100%)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
 
           {/* Search bar — slides up above nav when open */}
           {searchOpen && (
             <div className="flex items-center gap-2 px-3 py-2"
-              style={{ backgroundColor: isDark ? 'rgba(7,12,18,0.7)' : 'rgba(238,242,247,0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border-dim)' }}>
+              style={{
+                background: isDark ? 'rgba(7,12,18,0.9)' : 'rgba(238,242,247,0.9)',
+                backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+                borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border-dim)',
+              }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                 style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)', flexShrink: 0 }}>
                 <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
@@ -483,10 +487,13 @@ export default function Terminal() {
           <nav
             className="flex items-center justify-around"
             style={{
-              backgroundColor: isDark ? 'rgba(7,12,18,0.65)' : 'rgba(238,242,247,0.7)',
-              backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+              background: isDark
+                ? 'linear-gradient(to top, rgba(7,12,18,0.92), rgba(7,12,18,0.78))'
+                : 'linear-gradient(to top, rgba(238,242,247,0.92), rgba(238,242,247,0.82))',
+              backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)',
               borderTop: '1px solid var(--border)',
               height: '48px',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             }}
           >
             {/* Home — scroll to top */}
