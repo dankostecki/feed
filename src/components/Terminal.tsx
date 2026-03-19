@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { fetchAllFeeds, NewsItem, Source, relativeTime } from '@/lib/rss'
+import { fetchAllFeeds, NewsItem, Source } from '@/lib/rss'
 import { SOURCE_COLOR, SOURCE_BG, SOURCE_BD } from '@/lib/feedMeta'
 import NewsCard from './NewsCard'
 import Column from './Column'
@@ -423,122 +423,94 @@ export default function Terminal() {
         </main>
       )}
 
-      {/* ── SEARCH OVERLAY ── */}
-      {searchOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: 'var(--bg)', opacity: 0.98 }}>
-          <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)', flexShrink: 0 }}>
-              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-            </svg>
-            <input
-              ref={searchRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Escape') { setSearchQuery(''); setSearchOpen(false) } }}
-              placeholder="SEARCH…"
-              className="flex-1 bg-transparent font-mono text-[13px] outline-none min-w-0"
-              style={{ color: 'var(--text-hi)', caretColor: 'var(--src-NBP)' }}
-              spellCheck={false}
-              autoComplete="off"
-              autoFocus
-            />
-            {q && (
-              <span className="font-mono text-[11px] shrink-0" style={{ color: gridFiltered.length > 0 ? 'var(--src-NBP)' : 'var(--src-FED-fomc)' }}>
-                {isColumns
-                  ? `${items.filter((i) => matchesSearch(i, q)).length} hits`
-                  : `${gridFiltered.length} hits`}
-              </span>
-            )}
-            <button onClick={() => { setSearchQuery(''); setSearchOpen(false) }}
-              className="font-mono text-[12px] px-2 py-1 border rounded-sm"
-              style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>
-              ✕
-            </button>
-          </div>
-          {/* Search results preview */}
-          <div className="flex-1 overflow-y-auto p-3">
-            {q && gridFiltered.length > 0 && (
-              <div className="flex flex-col gap-1">
-                {(isColumns ? items.filter((i) => matchesSearch(i, q)) : gridFiltered).slice(0, 20).map((item) => (
-                  <button key={item.id} onClick={() => {
-                    markAsRead(item.id)
-                    setSearchOpen(false)
-                    if (item.link.includes('news.google.com')) {
-                      const cleanTitle = item.title.replace(/\s*-\s*(Bloomberg|Reuters)$/i, '')
-                      window.open(`https://www.google.com/search?q=${encodeURIComponent(cleanTitle)}`, '_blank', 'noopener,noreferrer')
-                    } else {
-                      window.open(item.link, '_blank', 'noopener,noreferrer')
-                    }
-                  }}
-                    className="flex items-center gap-3 px-3 py-2.5 text-left rounded-sm transition-colors"
-                    style={{ borderBottom: '1px solid var(--border-dim)' }}
-                  >
-                    <span className="text-[10px] font-bold font-mono tracking-wider shrink-0" style={{ color: SOURCE_COLOR[item.source] }}>{item.source}</span>
-                    <span className="text-[12px] font-mono line-clamp-1" style={{ color: 'var(--text-hi)' }}>{item.title}</span>
-                    <span className="text-[10px] font-mono shrink-0" style={{ color: 'var(--text-lo)' }}>{relativeTime(item.pubDate)}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {q && gridFiltered.length === 0 && (
-              <div className="flex items-center justify-center py-20">
-                <span className="font-mono text-[12px] tracking-widest" style={{ color: 'var(--text-dim)' }}>NO RESULTS</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* ── BOTTOM NAV BAR (Twitter/X style) ── */}
       {!isColumns && (
-        <nav
-          className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around transition-transform duration-300"
-          style={{
-            backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(12px)',
-            borderTop: '1px solid var(--border)',
-            transform: headerVisible ? 'translateY(0)' : 'translateY(100%)',
-            height: '48px',
-          }}
-        >
-          {/* Home — scroll to top */}
-          <button onClick={scrollToTop} title="Home"
-            className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
-            style={{ color: 'var(--text-ui)' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
-          </button>
+        <div className="fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300"
+          style={{ transform: headerVisible ? 'translateY(0)' : 'translateY(100%)' }}>
 
-          {/* Search — opens search overlay */}
-          <button onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 100) }} title="Search"
-            className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
-            style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-            </svg>
-          </button>
+          {/* Search bar — slides up above nav when open */}
+          {searchOpen && (
+            <div className="flex items-center gap-2 px-3 py-2"
+              style={{ backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border-dim)' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                style={{ color: q ? 'var(--src-ECB)' : 'var(--text-ui)', flexShrink: 0 }}>
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Escape') { setSearchQuery(''); setSearchOpen(false) } }}
+                placeholder="SEARCH…"
+                className="flex-1 bg-transparent font-mono text-[12px] outline-none min-w-0"
+                style={{ color: 'var(--text-hi)', caretColor: 'var(--src-NBP)' }}
+                spellCheck={false}
+                autoComplete="off"
+                autoFocus
+              />
+              {q && (
+                <span className="font-mono text-[10px] shrink-0" style={{ color: gridFiltered.length > 0 ? 'var(--src-NBP)' : 'var(--src-FED-fomc)' }}>
+                  {isColumns
+                    ? `${items.filter((i) => matchesSearch(i, q)).length} hits`
+                    : `${gridFiltered.length} hits`}
+                </span>
+              )}
+              <button onClick={() => { setSearchQuery(''); setSearchOpen(false) }}
+                className="font-mono text-[11px] shrink-0"
+                style={{ color: 'var(--text-ui)' }}>
+                ✕
+              </button>
+            </div>
+          )}
 
-          {/* Refresh */}
-          <button onClick={loadFeeds} disabled={loading} title="Refresh"
-            className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
-            style={{ color: loading ? 'var(--text-dim)' : 'var(--text-ui)' }}>
-            <svg width="20" height="20" className={loading ? 'animate-spin' : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 12a9 9 0 11-6.219-8.56" />
-            </svg>
-          </button>
+          {/* Nav buttons */}
+          <nav
+            className="flex items-center justify-around"
+            style={{
+              backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(12px)',
+              borderTop: '1px solid var(--border)',
+              height: '48px',
+            }}
+          >
+            {/* Home — scroll to top */}
+            <button onClick={scrollToTop} title="Home"
+              className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
+              style={{ color: 'var(--text-ui)' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </button>
 
-          {/* Settings */}
-          <button onClick={() => setSettingsOpen(true)} title="Settings"
-            className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
-            style={{ color: 'var(--text-ui)' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
-            </svg>
-          </button>
-        </nav>
+            {/* Search toggle */}
+            <button onClick={() => { setSearchOpen((v) => { if (!v) setTimeout(() => searchRef.current?.focus(), 100); return !v }); if (searchOpen) setSearchQuery('') }} title="Search"
+              className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
+              style={{ color: (searchOpen || q) ? 'var(--src-ECB)' : 'var(--text-ui)' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+            </button>
+
+            {/* Refresh */}
+            <button onClick={loadFeeds} disabled={loading} title="Refresh"
+              className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
+              style={{ color: loading ? 'var(--text-dim)' : 'var(--text-ui)' }}>
+              <svg width="20" height="20" className={loading ? 'animate-spin' : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12a9 9 0 11-6.219-8.56" />
+              </svg>
+            </button>
+
+            {/* Settings */}
+            <button onClick={() => setSettingsOpen(true)} title="Settings"
+              className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 transition-colors"
+              style={{ color: 'var(--text-ui)' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
+              </svg>
+            </button>
+          </nav>
+        </div>
       )}
 
       <StatusBar
