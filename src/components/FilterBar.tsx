@@ -12,6 +12,7 @@ interface Props {
   subCounts: Record<string, number>
   onSourceChange: (s: Filter) => void
   onSubFilterToggle: (label: string) => void
+  sourceOrder?: Source[]
 }
 
 // Each source button has a fixed accent — vivid in both dark and light
@@ -26,7 +27,7 @@ const BTN: Record<string, { color: string; bg: string; bd: string }> = {
   SAVED:     { color: 'var(--feed-fed-press)', bg: 'var(--feed-fed-press-bg)', bd: 'var(--feed-fed-press-bd)' },
 }
 
-const SOURCES: { value: Filter; label: string }[] = [
+const DEFAULT_SOURCES: { value: Filter; label: string }[] = [
   { value: 'ALL',   label: 'ALL'   },
   { value: 'FED',   label: 'FED'   },
   { value: 'ECB',   label: 'ECB'   },
@@ -37,7 +38,15 @@ const SOURCES: { value: Filter; label: string }[] = [
   { value: 'SAVED',     label: 'SAVED'     },
 ]
 
-export default function FilterBar({ source, subFilters, counts, subCounts, onSourceChange, onSubFilterToggle }: Props) {
+export default function FilterBar({ source, subFilters, counts, subCounts, onSourceChange, onSubFilterToggle, sourceOrder }: Props) {
+  // Use sourceOrder if provided: ALL first, then ordered sources, then SAVED at end
+  const SOURCES = sourceOrder
+    ? [
+        { value: 'ALL' as Filter, label: 'ALL' },
+        ...sourceOrder.map((s) => ({ value: s as Filter, label: s })),
+        { value: 'SAVED' as Filter, label: 'SAVED' },
+      ]
+    : DEFAULT_SOURCES
   const subfeeds = (source !== 'ALL' && source !== 'SAVED') ? SOURCE_SUBFEEDS[source] ?? [] : []
 
   return (

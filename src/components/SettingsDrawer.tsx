@@ -243,20 +243,20 @@ export default function SettingsDrawer({
                     <button
                       onClick={() => moveSource(i, -1)}
                       disabled={i === 0}
-                      className="w-6 h-6 flex items-center justify-center border rounded-sm text-[11px] font-mono transition-all duration-150"
-                      style={{ color: i === 0 ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)' }}
+                      className="w-9 h-9 flex items-center justify-center border rounded-sm text-[11px] font-mono transition-all duration-150 active:scale-95"
+                      style={{ color: i === 0 ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)', touchAction: 'manipulation' }}
                     >
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 15l-6-6-6 6"/>
                       </svg>
                     </button>
                     <button
                       onClick={() => moveSource(i, 1)}
                       disabled={i === sourceOrder.length - 1}
-                      className="w-6 h-6 flex items-center justify-center border rounded-sm text-[11px] font-mono transition-all duration-150"
-                      style={{ color: i === sourceOrder.length - 1 ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)' }}
+                      className="w-9 h-9 flex items-center justify-center border rounded-sm text-[11px] font-mono transition-all duration-150 active:scale-95"
+                      style={{ color: i === sourceOrder.length - 1 ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)', touchAction: 'manipulation' }}
                     >
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M6 9l6 6 6-6"/>
                       </svg>
                     </button>
