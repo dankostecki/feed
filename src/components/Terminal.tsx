@@ -348,7 +348,7 @@ export default function Terminal() {
         {!isColumns && (
           <div className="px-3 sm:px-4 lg:px-6 py-2.5">
             <FilterBar source={sourceFilter} subFilters={subFilters} counts={counts} subCounts={subCounts}
-              onSourceChange={handleSourceChange} onSubFilterToggle={handleSubFilterToggle} />
+              onSourceChange={handleSourceChange} onSubFilterToggle={handleSubFilterToggle} sourceOrder={sourceOrder} />
           </div>
         )}
 
