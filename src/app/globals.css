@@ -277,6 +277,16 @@ input::placeholder { color: var(--text-dim); }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
+/* ── Columns scroll: hidden on mobile, thin scrollbar on desktop ── */
+.columns-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+.columns-scroll::-webkit-scrollbar { display: none; }
+@media (min-width: 768px) {
+  .columns-scroll { scrollbar-width: thin; scrollbar-color: var(--border) transparent; -ms-overflow-style: auto; }
+  .columns-scroll::-webkit-scrollbar { display: block; width: 5px; height: 5px; }
+  .columns-scroll::-webkit-scrollbar-track { background: transparent; }
+  .columns-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
