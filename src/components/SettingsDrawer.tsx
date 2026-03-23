@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
+import { Source } from '@/lib/rss'
+import { SOURCE_COLOR } from '@/lib/feedMeta'
 
 interface Props {
   open: boolean
@@ -21,6 +23,8 @@ interface Props {
   onSearch?: () => void
   onRefresh?: () => void
   loading?: boolean
+  sourceOrder?: Source[]
+  onSourceOrderChange?: (order: Source[]) => void
 }
 
 function Row({ label, value, action, actionLabel, danger = false }: {
@@ -73,7 +77,16 @@ export default function SettingsDrawer({
   onThemeToggle, onAutoRefreshToggle,
   viewMode, onViewModeChange, onShowSaved,
   onScrollToTop, onSearch, onRefresh, loading,
+  sourceOrder, onSourceOrderChange,
 }: Props) {
+  function moveSource(idx: number, dir: -1 | 1) {
+    if (!sourceOrder || !onSourceOrderChange) return
+    const newIdx = idx + dir
+    if (newIdx < 0 || newIdx >= sourceOrder.length) return
+    const next = [...sourceOrder]
+    ;[next[idx], next[newIdx]] = [next[newIdx], next[idx]]
+    onSourceOrderChange(next)
+  }
   // Close on Escape
   useEffect(() => {
     if (!open) return
@@ -216,6 +229,42 @@ export default function SettingsDrawer({
               actionLabel={autoRefresh ? 'TURN OFF' : 'TURN ON'}
             />
           </Section>
+
+          {/* Source order */}
+          {sourceOrder && onSourceOrderChange && (
+            <Section title="Source Order">
+              <div className="flex flex-col">
+                {sourceOrder.map((src, i) => (
+                  <div key={src} className="flex items-center gap-2 py-2" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+                    <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: SOURCE_COLOR[src] }} />
+                    <span className="text-[11px] font-mono font-bold tracking-widest flex-1" style={{ color: SOURCE_COLOR[src] }}>
+                      {src}
+                    </span>
+                    <button
+                      onClick={() => moveSource(i, -1)}
+                      disabled={i === 0}
+                      className="w-6 h-6 flex items-center justify-center border rounded-sm text-[11px] font-mono transition-all duration-150"
+                      style={{ color: i === 0 ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)' }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 15l-6-6-6 6"/>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => moveSource(i, 1)}
+                      disabled={i === sourceOrder.length - 1}
+                      className="w-6 h-6 flex items-center justify-center border rounded-sm text-[11px] font-mono transition-all duration-150"
+                      style={{ color: i === sourceOrder.length - 1 ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)' }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 9l6 6 6-6"/>
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
 
           <Section title="Local Data">
             <Row

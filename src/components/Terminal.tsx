@@ -14,10 +14,11 @@ const READ_KEY     = 'cbt:read-articles'
 const BOOKMARK_KEY = 'cbt:bookmarks'
 const VIEW_KEY     = 'cbt:view-mode'
 const THEME_KEY    = 'cbt:theme'
+const ORDER_KEY    = 'cbt:source-order'
 
 type ViewMode = 'GRID' | 'COLUMNS'
 type Theme    = 'dark'  | 'light'
-const SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG', 'STOOQ']
+const DEFAULT_SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG', 'STOOQ']
 
 // ── Ticking clock ─────────────────────────────────────────────────────────
 function TickingClock() {
@@ -56,7 +57,8 @@ export default function Terminal() {
   const [theme,          setTheme]         = useState<Theme>('dark')
   const [sourceFilter,   setSourceFilter]  = useState<Filter>('ALL')
   const [subFilters,     setSubFilters]    = useState<Set<string>>(new Set())
-  const [colSubFilters,  setColSubFilters] = useState<Record<string, Set<string>>>({ FED: new Set(), ECB: new Set(), NBP: new Set(), REUTERS: new Set(), BLOOMBERG: new Set(), STOOQ: new Set() })
+  const [colSubFilters,  setColSubFilters] = useState<Record<string, Set<string>>>(() => Object.fromEntries(DEFAULT_SOURCES.map((s) => [s, new Set<string>()])) as Record<string, Set<string>>)
+  const [sourceOrder,    setSourceOrder]    = useState<Source[]>(DEFAULT_SOURCES)
   const [mobileActiveCol,setMobileActiveCol] = useState<Source>('FED')
   const [autoRefresh,    setAutoRefresh]   = useState(false)
   const [loading,        setLoading]       = useState(false)
@@ -82,6 +84,14 @@ export default function Terminal() {
     try { const b = localStorage.getItem(BOOKMARK_KEY); if (b) setBookmarkIds(new Set(JSON.parse(b)))  } catch {}
     try { const v = localStorage.getItem(VIEW_KEY)  as ViewMode | null; if (v === 'GRID' || v === 'COLUMNS') setViewMode(v) } catch {}
     try { const t = localStorage.getItem(THEME_KEY) as Theme   | null; if (t === 'dark' || t === 'light')   setTheme(t)    } catch {}
+    try {
+      const o = localStorage.getItem(ORDER_KEY)
+      if (o) {
+        const parsed = JSON.parse(o) as Source[]
+        // Validate: must contain all sources
+        if (parsed.length === DEFAULT_SOURCES.length && DEFAULT_SOURCES.every((s) => parsed.includes(s))) setSourceOrder(parsed)
+      }
+    } catch {}
   }, [])
 
   // Read tracker
@@ -136,7 +146,8 @@ export default function Terminal() {
   // Settings: clear actions
   function clearRead()      { setReadIds(new Set());      try { localStorage.removeItem(READ_KEY)     } catch {} }
   function clearBookmarks() { setBookmarkIds(new Set()); try { localStorage.removeItem(BOOKMARK_KEY)  } catch {} }
-  function clearAll()       { clearRead(); clearBookmarks(); try { localStorage.removeItem(VIEW_KEY); localStorage.removeItem(THEME_KEY) } catch {} }
+  function clearAll()       { clearRead(); clearBookmarks(); setSourceOrder(DEFAULT_SOURCES); try { localStorage.removeItem(VIEW_KEY); localStorage.removeItem(THEME_KEY); localStorage.removeItem(ORDER_KEY) } catch {} }
+  function changeSourceOrder(order: Source[]) { setSourceOrder(order); try { localStorage.setItem(ORDER_KEY, JSON.stringify(order)) } catch {} }
 
   // ── Measure header height for spacer ──
   useEffect(() => {
@@ -251,6 +262,8 @@ export default function Terminal() {
         onSearch={() => { scrollToTop(); setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 100) }}
         onRefresh={loadFeeds}
         loading={loading}
+        sourceOrder={sourceOrder}
+        onSourceOrderChange={changeSourceOrder}
       />
 
       {/* ── HEADER ── */}
@@ -263,7 +276,7 @@ export default function Terminal() {
         }}
       >
         {/* Strip 1: branding + controls */}
-        <div className="flex items-center justify-between px-3 sm:px-4 py-2 gap-2" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+        <div className="flex items-center justify-between px-3 sm:px-4 lg:px-6 py-2 gap-2" style={{ borderBottom: '1px solid var(--border-dim)' }}>
           {/* Logo */}
           <div className="flex items-center gap-2 min-w-0">
             <span className="w-2 h-2 rounded-full flex-shrink-0"
@@ -272,7 +285,7 @@ export default function Terminal() {
               CB Terminal
             </span>
             <div className="hidden md:flex items-center gap-1 ml-1">
-              {SOURCES.map((src) => (
+              {sourceOrder.map((src) => (
                 <span key={src} className="text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm border"
                   style={{ color: SOURCE_COLOR[src], borderColor: SOURCE_BD[src], backgroundColor: SOURCE_BG[src] }}>
                   {src}
@@ -333,7 +346,7 @@ export default function Terminal() {
 
         {/* Strip 2: GRID filters */}
         {!isColumns && (
-          <div className="px-3 sm:px-4 py-2.5">
+          <div className="px-3 sm:px-4 lg:px-6 py-2.5">
             <FilterBar source={sourceFilter} subFilters={subFilters} counts={counts} subCounts={subCounts}
               onSourceChange={handleSourceChange} onSubFilterToggle={handleSubFilterToggle} />
           </div>
@@ -342,7 +355,7 @@ export default function Terminal() {
         {/* Strip 4: COLUMNS mobile tab switcher */}
         {isColumns && (
           <div className="flex md:hidden" style={{ borderBottom: '1px solid var(--border)' }}>
-            {SOURCES.map((src) => {
+            {sourceOrder.map((src) => {
               const isActive = mobileActiveCol === src
               const color = SOURCE_COLOR[src]
               return (
@@ -369,11 +382,11 @@ export default function Terminal() {
 
       {/* ── COLUMN VIEW ── */}
       {isColumns && (
-        <div className="flex flex-1 overflow-x-auto overflow-y-hidden min-h-0 no-scrollbar">
-          {SOURCES.map((src) => (
-            /* Mobile: show only active column. Desktop: min-width per column, horizontally scrollable */
-            <div key={src} className={`${mobileActiveCol === src ? 'flex' : 'hidden'} md:flex shrink-0 overflow-hidden`}
-              style={{ width: 'min(280px, 100vw)', minWidth: '200px' }}>
+        <div className="flex flex-1 overflow-x-auto overflow-y-hidden min-h-0 columns-scroll">
+          {sourceOrder.map((src) => (
+            /* Mobile: show only active column. Desktop: flex-grow to fill, horizontally scrollable */
+            <div key={src} className={`${mobileActiveCol === src ? 'flex' : 'hidden'} md:flex shrink-0 md:shrink overflow-hidden`}
+              style={{ width: 'min(280px, 100vw)', minWidth: '200px', flexGrow: 1, maxWidth: '380px' }}>
               <Column
                 source={src}
                 items={items.filter((i) => i.source === src)}
@@ -395,9 +408,9 @@ export default function Terminal() {
 
       {/* ── GRID VIEW ── */}
       {!isColumns && (
-        <main className="flex-1 p-2 sm:p-3 pb-24">
+        <main className="flex-1 p-2 sm:p-3 lg:p-4 pb-24 mx-auto w-full max-w-[2400px]">
           {!initialLoaded && loading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6 gap-2 lg:gap-3">
               {Array.from({ length: 16 }).map((_, i) => (
                 <div key={i} className="animate-pulse rounded-sm"
                   style={{ height: i % 3 === 0 ? '9rem' : '7rem', backgroundColor: 'var(--skeleton)', border: '1px solid var(--border)' }} />
@@ -422,7 +435,7 @@ export default function Terminal() {
           )}
 
           {gridFiltered.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6 gap-2 lg:gap-3">
               {gridFiltered.map((item, i) => {
                 const dk = dayKey(item.pubDate)
                 const prev = i > 0 ? dayKey(gridFiltered[i - 1].pubDate) : null
