@@ -384,9 +384,9 @@ export default function Terminal() {
       {isColumns && (
         <div className="flex flex-1 overflow-x-auto overflow-y-hidden min-h-0 columns-scroll">
           {sourceOrder.map((src) => (
-            /* Mobile: show only active column. Desktop: flex-grow to fill, horizontally scrollable */
-            <div key={src} className={`${mobileActiveCol === src ? 'flex' : 'hidden'} md:flex shrink-0 md:shrink overflow-hidden`}
-              style={{ width: 'min(280px, 100vw)', minWidth: '200px', flexGrow: 1, maxWidth: '380px' }}>
+            /* Mobile: show only active column. Desktop: equal flex columns */
+            <div key={src} className={`${mobileActiveCol === src ? 'flex' : 'hidden'} md:flex shrink-0 md:shrink md:flex-1 overflow-hidden`}
+              style={{ width: 'min(100vw, 280px)', minWidth: '240px' }}>
               <Column
                 source={src}
                 items={items.filter((i) => i.source === src)}
