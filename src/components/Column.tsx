@@ -6,7 +6,7 @@ import NewsCard from './NewsCard'
 import DateSeparator, { dayKey } from './DateSeparator'
 
 interface Props {
-  source: 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ'
+  source: 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ' | 'AXIOS'
   items: NewsItem[]
   subFilters: Set<string>
   subCounts: Record<string, number>
@@ -27,6 +27,7 @@ const SOURCE_FULL: Record<string, string> = {
   REUTERS: 'Reuters News Agency',
   BLOOMBERG: 'Bloomberg L.P.',
   STOOQ: 'Stooq.pl',
+  AXIOS: 'Axios Media',
 }
 
 export default function Column({ source, items, subFilters, subCounts, readIds, bookmarkIds, loading, initialLoaded, searchQuery, onRead, onBookmark, onSubFilterToggle }: Props) {
