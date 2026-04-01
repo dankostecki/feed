@@ -122,6 +122,14 @@
   --feed-stooq-swiat:    #ea580c;
   --feed-stooq-swiat-bg: rgba(234,88,12,0.10);
   --feed-stooq-swiat-bd: rgba(234,88,12,0.32);
+
+  --src-AXIOS:    #06b6d4;
+  --src-AXIOS-bg: rgba(6,182,212,0.09);
+  --src-AXIOS-bd: rgba(6,182,212,0.30);
+
+  --feed-axios-news:    #06b6d4;
+  --feed-axios-news-bg: rgba(6,182,212,0.10);
+  --feed-axios-news-bd: rgba(6,182,212,0.32);
 }
 
 /* ── Light mode ──────────────────────────────────────────────────────────── */
@@ -242,6 +250,14 @@
   --feed-stooq-swiat:    #7c2d12;
   --feed-stooq-swiat-bg: rgba(124,45,18,0.08);
   --feed-stooq-swiat-bd: rgba(124,45,18,0.28);
+
+  --src-AXIOS:    #0e7490;
+  --src-AXIOS-bg: rgba(14,116,144,0.08);
+  --src-AXIOS-bd: rgba(14,116,144,0.28);
+
+  --feed-axios-news:    #0e7490;
+  --feed-axios-news-bg: rgba(14,116,144,0.08);
+  --feed-axios-news-bd: rgba(14,116,144,0.28);
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */

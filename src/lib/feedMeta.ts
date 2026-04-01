@@ -4,7 +4,7 @@ export interface FeedMeta {
   border: string  // CSS var — translucent border for tag
   symbol: string
   label: string
-  source: 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ'
+  source: 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ' | 'AXIOS'
 }
 
 export const FEED_META: Record<string, FeedMeta> = {
@@ -27,6 +27,7 @@ export const FEED_META: Record<string, FeedMeta> = {
   'STOOQ::BIZNES': { color: 'var(--feed-stooq-biznes)', bg: 'var(--feed-stooq-biznes-bg)', border: 'var(--feed-stooq-biznes-bd)', symbol: '◉', label: 'STOOQ · BIZNES', source: 'STOOQ' },
   'STOOQ::KRAJ':   { color: 'var(--feed-stooq-kraj)',   bg: 'var(--feed-stooq-kraj-bg)',   border: 'var(--feed-stooq-kraj-bd)',   symbol: '◎', label: 'STOOQ · KRAJ',   source: 'STOOQ' },
   'STOOQ::ŚWIAT':  { color: 'var(--feed-stooq-swiat)',  bg: 'var(--feed-stooq-swiat-bg)',  border: 'var(--feed-stooq-swiat-bd)',  symbol: '◆', label: 'STOOQ · ŚWIAT',  source: 'STOOQ' },
+  'AXIOS::NEWS':   { color: 'var(--feed-axios-news)',   bg: 'var(--feed-axios-news-bg)',   border: 'var(--feed-axios-news-bd)',   symbol: '◉', label: 'AXIOS · NEWS',   source: 'AXIOS' },
 }
 
 export const SOURCE_SUBFEEDS: Record<string, string[]> = {
@@ -36,6 +37,7 @@ export const SOURCE_SUBFEEDS: Record<string, string[]> = {
   REUTERS: ['MARKETS', 'BUSINESS', 'WORLD'],
   BLOOMBERG: ['MARKETS', 'ECONOMICS', 'POLITICS'],
   STOOQ: ['BIZNES', 'KRAJ', 'ŚWIAT'],
+  AXIOS: ['NEWS'],
 }
 
 // All return CSS vars — resolved correctly for dark AND light by the browser
@@ -46,6 +48,7 @@ export const SOURCE_COLOR: Record<string, string> = {
   REUTERS: 'var(--src-REUTERS)',
   BLOOMBERG: 'var(--src-BLOOMBERG)',
   STOOQ: 'var(--src-STOOQ)',
+  AXIOS: 'var(--src-AXIOS)',
 }
 
 export const SOURCE_BG: Record<string, string> = {
@@ -55,6 +58,7 @@ export const SOURCE_BG: Record<string, string> = {
   REUTERS: 'var(--src-REUTERS-bg)',
   BLOOMBERG: 'var(--src-BLOOMBERG-bg)',
   STOOQ: 'var(--src-STOOQ-bg)',
+  AXIOS: 'var(--src-AXIOS-bg)',
 }
 
 export const SOURCE_BD: Record<string, string> = {
@@ -64,6 +68,7 @@ export const SOURCE_BD: Record<string, string> = {
   REUTERS: 'var(--src-REUTERS-bd)',
   BLOOMBERG: 'var(--src-BLOOMBERG-bd)',
   STOOQ: 'var(--src-STOOQ-bd)',
+  AXIOS: 'var(--src-AXIOS-bd)',
 }
 
 export function getFeedMeta(source: string, feedLabel: string): FeedMeta {
@@ -74,7 +79,7 @@ export function getFeedMeta(source: string, feedLabel: string): FeedMeta {
       border: 'rgba(107,114,128,0.25)',
       symbol: '○',
       label: `${source} · ${feedLabel}`,
-      source: source as 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ',
+      source: source as 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ' | 'AXIOS',
     }
   )
 }
