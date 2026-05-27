@@ -16,6 +16,8 @@ interface Props {
   onClearAll: () => void
   onThemeToggle: () => void
   onAutoRefreshToggle: () => void
+  ttsEnabled?: boolean
+  onTtsToggle?: () => void
   viewMode?: 'GRID' | 'COLUMNS'
   onViewModeChange?: (v: 'GRID' | 'COLUMNS') => void
   onShowSaved?: () => void
@@ -75,6 +77,7 @@ export default function SettingsDrawer({
   theme, autoRefresh,
   onClearRead, onClearBookmarks, onClearAll,
   onThemeToggle, onAutoRefreshToggle,
+  ttsEnabled, onTtsToggle,
   viewMode, onViewModeChange, onShowSaved,
   onScrollToTop, onSearch, onRefresh, loading,
   sourceOrder, onSourceOrderChange,
@@ -228,6 +231,14 @@ export default function SettingsDrawer({
               action={onAutoRefreshToggle}
               actionLabel={autoRefresh ? 'TURN OFF' : 'TURN ON'}
             />
+            {onTtsToggle && (
+              <Row
+                label="Read new articles"
+                value={ttsEnabled ? 'On — PL/EN auto-detect per source' : 'Off'}
+                action={onTtsToggle}
+                actionLabel={ttsEnabled ? 'TURN OFF' : 'TURN ON'}
+              />
+            )}
           </Section>
 
           {/* Source order */}

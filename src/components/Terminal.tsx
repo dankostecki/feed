@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { fetchAllFeeds, NewsItem, Source } from '@/lib/rss'
 import { SOURCE_COLOR, SOURCE_BG, SOURCE_BD } from '@/lib/feedMeta'
+import { speak, langFor, cancelAll } from '@/lib/tts'
 import NewsCard from './NewsCard'
 import Column from './Column'
 import DateSeparator, { dayKey } from './DateSeparator'
@@ -15,6 +16,7 @@ const BOOKMARK_KEY = 'cbt:bookmarks'
 const VIEW_KEY     = 'cbt:view-mode'
 const THEME_KEY    = 'cbt:theme'
 const ORDER_KEY    = 'cbt:source-order'
+const TTS_KEY      = 'cbt:tts-enabled'
 
 type ViewMode = 'GRID' | 'COLUMNS'
 type Theme    = 'dark'  | 'light'
@@ -72,9 +74,12 @@ export default function Terminal() {
   const [searchOpen,     setSearchOpen]    = useState(false)
   const [headerVisible,  setHeaderVisible] = useState(true)
   const [headerHeight,   setHeaderHeight]  = useState(0)
+  const [ttsEnabled,     setTtsEnabled]    = useState(false)
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const searchRef    = useRef<HTMLInputElement>(null)
   const lastScrollY  = useRef(0)
+  const seenIdsRef   = useRef<Set<string>>(new Set())
+  const ttsEnabledRef = useRef(false)
   const feedRef      = useRef<HTMLDivElement>(null)
   const headerRef    = useRef<HTMLElement>(null)
 
@@ -92,7 +97,11 @@ export default function Terminal() {
         if (parsed.length === DEFAULT_SOURCES.length && DEFAULT_SOURCES.every((s) => parsed.includes(s))) setSourceOrder(parsed)
       }
     } catch {}
+    try { if (localStorage.getItem(TTS_KEY) === '1') setTtsEnabled(true) } catch {}
   }, [])
+
+  // Sync TTS state to ref (loadFeeds reads via ref to avoid stale closure + interval reset)
+  useEffect(() => { ttsEnabledRef.current = ttsEnabled }, [ttsEnabled])
 
   // Read tracker
   const markAsRead = useCallback((id: string) => {
@@ -118,6 +127,17 @@ export default function Terminal() {
     try {
       const { items: fetched, errors: errs } = await fetchAllFeeds()
       setItems(fetched); setErrors(errs); setLastUpdated(new Date())
+
+      // TTS: read NEW items aloud (skip first load to avoid spamming 50+ at once)
+      const previousIds = seenIdsRef.current
+      const isFirstLoad = previousIds.size === 0
+      const nextSeen = new Set<string>()
+      fetched.forEach((item) => nextSeen.add(item.id))
+      seenIdsRef.current = nextSeen
+      if (!isFirstLoad && ttsEnabledRef.current) {
+        const newItems = fetched.filter((item) => !previousIds.has(item.id))
+        newItems.slice(0, 10).forEach((item) => speak(item.title, langFor(item.source)))
+      }
     } catch (e) {
       setErrors([{ feed: 'ALL', message: e instanceof Error ? e.message : 'Unknown' }])
     } finally { setLoading(false); setInitialLoaded(true) }
@@ -133,6 +153,14 @@ export default function Terminal() {
   function switchView(v: ViewMode) { setViewMode(v); try { localStorage.setItem(VIEW_KEY, v) } catch {} }
   function switchTheme() {
     setTheme((t) => { const n = t === 'dark' ? 'light' : 'dark'; try { localStorage.setItem(THEME_KEY, n) } catch {}; return n })
+  }
+  function toggleTTS() {
+    setTtsEnabled((v) => {
+      const next = !v
+      try { localStorage.setItem(TTS_KEY, next ? '1' : '0') } catch {}
+      if (!next) cancelAll()
+      return next
+    })
   }
 
   function handleSourceChange(s: Filter) { setSourceFilter(s); setSubFilters(new Set()); scrollToTop() }
@@ -256,6 +284,8 @@ export default function Terminal() {
         onClearAll={clearAll}
         onThemeToggle={switchTheme}
         onAutoRefreshToggle={() => setAutoRefresh((v) => !v)}
+        ttsEnabled={ttsEnabled}
+        onTtsToggle={toggleTTS}
         viewMode={viewMode}
         onViewModeChange={switchView}
         onShowSaved={() => { if (viewMode !== 'GRID') switchView('GRID'); handleSourceChange('SAVED'); setSettingsOpen(false) }}
