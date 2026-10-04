@@ -488,7 +488,7 @@
     // ── Config ──────────────────────────────────────────────────────────
     const INSTRUMENTS = [
       { id: 'XYZ100',   dex: 'xyz',  label: 'NDX100',   category: 'INDEX', decimals: 1 },
-      { id: 'USA500',   dex: 'cash', label: 'S&P 500',  category: 'INDEX', decimals: 1 },
+      { id: 'SP500',    dex: 'xyz',  label: 'S&P 500',  category: 'INDEX', decimals: 1, alt: { dex: 'cash', id: 'USA500' } },
       { id: 'CL',       dex: 'xyz',  label: 'WTI OIL',  category: 'CMDTY', decimals: 2 },
       { id: 'BRENTOIL', dex: 'xyz',  label: 'BRENT',    category: 'CMDTY', decimals: 2 },
       { id: 'GOLD',     dex: 'xyz',  label: 'GOLD',     category: 'CMDTY', decimals: 1 },
@@ -525,12 +525,20 @@
 
     async function fetchAllMids() {
       try {
-        const [main, xyz, cash] = await Promise.all([
+        // allSettled: one failing dex must not wipe prices from the others
+        const [main, xyz, cash] = await Promise.allSettled([
           postAPI({ type: 'allMids' }),
           postAPI({ type: 'allMids', dex: 'xyz' }),
           postAPI({ type: 'allMids', dex: 'cash' }),
         ]);
-        midsData = { main, xyz, cash };
+        midsData = {
+          main: main.status === 'fulfilled' ? main.value : midsData.main,
+          xyz:  xyz.status  === 'fulfilled' ? xyz.value  : midsData.xyz,
+          cash: cash.status === 'fulfilled' ? cash.value : midsData.cash,
+        };
+        const failed = [main, xyz, cash].filter(r => r.status === 'rejected');
+        if (failed.length === 3) throw failed[0].reason;
+        if (failed.length) console.warn('allMids partial failure:', failed.map(r => r.reason));
         lastSuccessfulFetch = Date.now();
       } catch (e) {
         console.error('fetchAllMids error:', e);
@@ -546,17 +554,14 @@
           // Main dex: key is bare ticker
           raw = midsData.main[inst.id];
         } else {
-          // HIP-3 dex: try multiple key formats
-          const src = inst.dex === 'xyz' ? midsData.xyz : midsData.cash;
-          raw = src[inst.id]                          // bare: "CL"
-            ?? src[`${inst.dex}:${inst.id}`]          // prefixed: "xyz:CL"
-            ?? src[inst.id.toUpperCase()]              // uppercase variant
-            ?? null;
-
-          // Fallback: search other dex if not found
-          if (raw == null) {
-            const other = inst.dex === 'xyz' ? midsData.cash : midsData.xyz;
-            raw = other[inst.id] ?? other[`${inst.dex === 'xyz' ? 'cash' : 'xyz'}:${inst.id}`] ?? null;
+          raw = lookupMid(inst.dex, inst.id);
+          // Fallback: same ticker on the other dex
+          if (raw == null) raw = lookupMid(inst.dex === 'xyz' ? 'cash' : 'xyz', inst.id);
+          // Fallback: alternative market (e.g. S&P 500 xyz:SP500 -> cash:USA500)
+          inst.useAlt = false;
+          if (raw == null && inst.alt) {
+            raw = lookupMid(inst.alt.dex, inst.alt.id);
+            if (raw != null) inst.useAlt = true;
           }
         }
 
@@ -574,7 +579,17 @@
       }
     }
 
+    // HIP-3 dex: try multiple key formats
+    function lookupMid(dex, id) {
+      const src = midsData[dex] || {};
+      return src[id]                     // bare: "CL"
+        ?? src[`${dex}:${id}`]           // prefixed: "xyz:CL"
+        ?? src[id.toUpperCase()]         // uppercase variant
+        ?? null;
+    }
+
     function coinKey(inst) {
+      if (inst.useAlt && inst.alt) return `${inst.alt.dex}:${inst.alt.id}`;
       return inst.dex ? `${inst.dex}:${inst.id}` : inst.id;
     }
 
