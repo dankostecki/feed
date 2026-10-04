@@ -265,6 +265,7 @@ export default function Terminal() {
         loading={loading}
         sourceOrder={sourceOrder}
         onSourceOrderChange={changeSourceOrder}
+        items={items}
       />
 
       {/* ── HEADER ── */}
