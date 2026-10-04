@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
-import { Source } from '@/lib/rss'
+import { useEffect, useState } from 'react'
+import { NewsItem, Source } from '@/lib/rss'
+import { buildJevExport, itemsInWindow } from '@/lib/jevExport'
 import { SOURCE_COLOR } from '@/lib/feedMeta'
 
 interface Props {
@@ -25,6 +26,7 @@ interface Props {
   loading?: boolean
   sourceOrder?: Source[]
   onSourceOrderChange?: (order: Source[]) => void
+  items?: NewsItem[]
 }
 
 function Row({ label, value, action, actionLabel, danger = false }: {
@@ -55,6 +57,51 @@ function Row({ label, value, action, actionLabel, danger = false }: {
   )
 }
 
+const BTN_STYLE = { color: 'var(--text-ui)', borderColor: 'var(--border)' }
+
+function JevExportRow({ items, hours }: { items: NewsItem[]; hours: number }) {
+  const [copied, setCopied] = useState<string | null>(null)
+  const count = itemsInWindow(items, hours).length
+
+  function download() {
+    const { file, filename } = buildJevExport(items, hours)
+    const url = URL.createObjectURL(new Blob([file], { type: 'text/plain;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url; a.download = filename
+    document.body.appendChild(a); a.click(); a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
+  async function copy(part: 'state' | 'questions') {
+    const exp = buildJevExport(items, hours)
+    try {
+      await navigator.clipboard.writeText(exp[part])
+      setCopied(part); setTimeout(() => setCopied(null), 1500)
+    } catch {
+      download()
+    }
+  }
+
+  const btn = 'px-2.5 py-1 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150 shrink-0 disabled:opacity-40'
+  return (
+    <div className="flex items-center justify-between gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+      <div className="flex flex-col leading-none gap-0.5">
+        <span className="text-[11px] font-mono" style={{ color: 'var(--text-hi)' }}>Last {hours}h</span>
+        <span className="text-[10px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{count} headlines</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <button onClick={download} disabled={!count} className={btn} style={BTN_STYLE} title="Download .txt with State and Questions">TXT</button>
+        <button onClick={() => copy('state')} disabled={!count} className={btn} style={BTN_STYLE} title="Copy the State field">
+          {copied === 'state' ? 'COPIED' : 'STATE'}
+        </button>
+        <button onClick={() => copy('questions')} disabled={!count} className={btn} style={BTN_STYLE} title="Copy the Questions JSON">
+          {copied === 'questions' ? 'COPIED' : 'QUESTIONS'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-0">
@@ -77,7 +124,7 @@ export default function SettingsDrawer({
   onThemeToggle, onAutoRefreshToggle,
   viewMode, onViewModeChange, onShowSaved,
   onScrollToTop, onSearch, onRefresh, loading,
-  sourceOrder, onSourceOrderChange,
+  sourceOrder, onSourceOrderChange, items,
 }: Props) {
   function moveSource(idx: number, dir: -1 | 1) {
     if (!sourceOrder || !onSourceOrderChange) return
@@ -212,6 +259,16 @@ export default function SettingsDrawer({
                   </button>
                 </div>
               )}
+            </Section>
+          )}
+
+          {items && (
+            <Section title="Export for Jev">
+              <JevExportRow items={items} hours={8} />
+              <JevExportRow items={items} hours={24} />
+              <p className="text-[10px] font-mono leading-relaxed pt-2" style={{ color: 'var(--text-ui)' }}>
+                console.typesafe.ai/playground: STATE → State field, QUESTIONS → Questions field. Higher probability = more important.
+              </p>
             </Section>
           )}
 
