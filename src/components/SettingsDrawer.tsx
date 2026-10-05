@@ -264,6 +264,7 @@ export default function SettingsDrawer({
 
           {items && (
             <Section title="Export for Jev">
+              <JevExportRow items={items} hours={4} />
               <JevExportRow items={items} hours={8} />
               <JevExportRow items={items} hours={24} />
               <p className="text-[10px] font-mono leading-relaxed pt-2" style={{ color: 'var(--text-ui)' }}>
