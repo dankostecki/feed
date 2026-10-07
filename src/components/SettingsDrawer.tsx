@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { NewsItem, Source } from '@/lib/rss'
 import { buildJevExport, itemsInWindow } from '@/lib/jevExport'
 import { SOURCE_COLOR } from '@/lib/feedMeta'
+import { NotifySettings } from '@/lib/notify'
 import { VoiceSettings, ALL_SOURCES, voicesFor, speak, stopSpeaking, Lang } from '@/lib/speech'
 
 interface Props {
@@ -33,6 +34,11 @@ interface Props {
   voiceSettings?: VoiceSettings
   onVoiceSettingsChange?: (v: VoiceSettings) => void
   voices?: SpeechSynthesisVoice[]
+  notifySettings?: NotifySettings
+  notifyPerm?: NotificationPermission | 'unsupported'
+  onNotifyToggle?: () => void
+  onNotifySettingsChange?: (v: NotifySettings) => void
+  onNotifyTest?: () => void
 }
 
 function Row({ label, value, action, actionLabel, danger = false }: {
@@ -110,6 +116,53 @@ function JevExportRow({ items, hours }: { items: NewsItem[]; hours: number }) {
 
 const SELECT_CLS = 'bg-transparent border rounded-sm font-mono text-[12px] px-2 py-1.5 max-w-[60%] min-w-0'
 const SELECT_STYLE = { color: 'var(--text-hi)', borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }
+
+function NotifySection({ settings, perm, onToggle, onChange, onTest }: {
+  settings: NotifySettings; perm: NotificationPermission | 'unsupported'
+  onToggle: () => void; onChange: (v: NotifySettings) => void; onTest: () => void
+}) {
+  const btn = 'px-2.5 py-1.5 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150 shrink-0'
+  const line = { borderBottom: '1px solid var(--border-dim)' }
+  const on = settings.enabled && perm === 'granted'
+  const status = perm === 'unsupported' ? 'Not supported in this browser'
+    : perm === 'denied' ? 'Blocked — allow notifications for this site in the browser (padlock icon in the address bar)'
+    : on ? 'On · auto-refresh 60s · works while this page is open' : 'Off'
+  const toggleSource = (src: typeof ALL_SOURCES[number]) =>
+    onChange({ ...settings, sources: settings.sources.includes(src) ? settings.sources.filter((x) => x !== src) : [...settings.sources, src] })
+  return (
+    <Section title="Desktop notifications">
+      <div className="flex items-center justify-between gap-3 py-2.5" style={line}>
+        <div className="flex flex-col leading-none gap-1 min-w-0">
+          <span className="text-[12px] font-mono" style={{ color: 'var(--text-hi)' }}>Notify about new headlines</span>
+          <span className="text-[11px] font-mono leading-snug" style={{ color: perm === 'denied' ? '#f87171' : 'var(--text-ui)' }}>{status}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {on && <button onClick={onTest} className={btn} style={BTN_STYLE} title="Show a test notification">TEST</button>}
+          <button onClick={onToggle} disabled={perm === 'unsupported' || perm === 'denied'} className={`${btn} disabled:opacity-40`}
+            style={on ? { color: '#38bdf8', borderColor: '#38bdf880', backgroundColor: '#38bdf818' } : BTN_STYLE}>
+            {on ? 'ON' : 'OFF'}
+          </button>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2 py-2.5" style={line}>
+        <span className="text-[12px] font-mono" style={{ color: 'var(--text-hi)' }}>Sources</span>
+        <div className="flex flex-wrap gap-1.5">
+          {ALL_SOURCES.map((src) => {
+            const active = settings.sources.includes(src)
+            return (
+              <button key={src} onClick={() => toggleSource(src)} className={btn}
+                style={active
+                  ? { color: SOURCE_COLOR[src], borderColor: SOURCE_COLOR[src] + '80', backgroundColor: SOURCE_COLOR[src] + '18' }
+                  : { color: 'var(--text-ui)', borderColor: 'var(--border)', opacity: 0.6 }}>
+                {src}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </Section>
+  )
+}
 
 function VoiceSection({ on, onToggle, settings, onChange, voices }: {
   on: boolean; onToggle: () => void; settings: VoiceSettings; onChange: (v: VoiceSettings) => void; voices: SpeechSynthesisVoice[]
@@ -223,6 +276,7 @@ export default function SettingsDrawer({
   onScrollToTop, onSearch, onRefresh, loading,
   sourceOrder, onSourceOrderChange, items,
   voiceOn, onVoiceToggle, voiceSettings, onVoiceSettingsChange, voices = [],
+  notifySettings, notifyPerm = 'unsupported', onNotifyToggle, onNotifySettingsChange, onNotifyTest,
 }: Props) {
   function moveSource(idx: number, dir: -1 | 1) {
     if (!sourceOrder || !onSourceOrderChange) return
@@ -370,6 +424,11 @@ export default function SettingsDrawer({
                 </div>
               )}
             </Section>
+          )}
+
+          {notifySettings && onNotifyToggle && onNotifySettingsChange && onNotifyTest && (
+            <NotifySection settings={notifySettings} perm={notifyPerm} onToggle={onNotifyToggle}
+              onChange={onNotifySettingsChange} onTest={onNotifyTest} />
           )}
 
           {voiceSettings && onVoiceToggle && onVoiceSettingsChange && (

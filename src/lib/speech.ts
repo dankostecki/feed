@@ -91,9 +91,9 @@ export function stopSpeaking() {
 
 // New = not seen in the previous fetch, from a selected source, published in
 // the last hour (feeds sometimes re-surface old items with a new id).
-export function newHeadlines(fetched: NewsItem[], seen: Set<string>, settings: VoiceSettings, now = Date.now()): NewsItem[] {
+export function newHeadlines(fetched: NewsItem[], seen: Set<string>, sources: Source[], now = Date.now()): NewsItem[] {
   return fetched
-    .filter((i) => !seen.has(i.id) && settings.sources.includes(i.source) && now - i.pubDate.getTime() < 3600_000)
+    .filter((i) => !seen.has(i.id) && sources.includes(i.source) && now - i.pubDate.getTime() < 3600_000)
     .sort((a, b) => a.pubDate.getTime() - b.pubDate.getTime()) // oldest first, in the order they arrived
 }
 

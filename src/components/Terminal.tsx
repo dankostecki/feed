@@ -9,6 +9,7 @@ import DateSeparator, { dayKey } from './DateSeparator'
 import FilterBar, { Filter } from './FilterBar'
 import StatusBar from './StatusBar'
 import SettingsDrawer from './SettingsDrawer'
+import { NotifySettings, DEFAULT_NOTIFY_SETTINGS, loadNotifySettings, saveNotifySettings, notifySupported, notifyPermission, requestNotifyPermission, notifyHeadlines, testNotification } from '@/lib/notify'
 import { VoiceSettings, DEFAULT_VOICE_SETTINGS, loadVoiceSettings, saveVoiceSettings, speechSupported, newHeadlines, announce, speak, stopSpeaking, voicesFor } from '@/lib/speech'
 
 const READ_KEY     = 'cbt:read-articles'
@@ -92,6 +93,27 @@ export default function Terminal({ active = true, topBar }: TerminalProps = {}) 
     window.speechSynthesis.addEventListener('voiceschanged', update)
     return () => window.speechSynthesis.removeEventListener('voiceschanged', update)
   }, [])
+  // ── Desktop notifications (independent of voice) ──
+  const [notifySettings, setNotifySettings] = useState<NotifySettings>(DEFAULT_NOTIFY_SETTINGS)
+  const [notifyPerm,     setNotifyPerm]     = useState<NotificationPermission | 'unsupported'>('unsupported')
+  const notifyRef = useRef(DEFAULT_NOTIFY_SETTINGS)
+  useEffect(() => { notifyRef.current = notifySettings }, [notifySettings])
+  useEffect(() => {
+    const v = loadNotifySettings(), perm = notifyPermission()
+    setNotifySettings(v); setNotifyPerm(perm)
+    if (v.enabled && perm === 'granted') setAutoRefresh(true) // keep checking for news after a reload
+  }, [])
+  function changeNotifySettings(v: NotifySettings) { setNotifySettings(v); saveNotifySettings(v) }
+  async function toggleNotify() {
+    if (notifySettings.enabled) { changeNotifySettings({ ...notifySettings, enabled: false }); return }
+    const perm = await requestNotifyPermission()
+    setNotifyPerm(perm)
+    if (perm !== 'granted') return
+    changeNotifySettings({ ...notifySettings, enabled: true })
+    setAutoRefresh(true)
+    testNotification()
+  }
+
   function changeVoiceSettings(v: VoiceSettings) { setVoiceSettings(v); saveVoiceSettings(v) }
   function toggleVoice() {
     if (voiceOn) { stopSpeaking(); setVoiceOn(false); return }
@@ -145,9 +167,11 @@ export default function Terminal({ active = true, topBar }: TerminalProps = {}) 
       const seen = seenIds.current
       const v = voiceRef.current
       if (seen && v.on) {
-        const fresh = newHeadlines(fetched, seen, v.settings)
+        const fresh = newHeadlines(fetched, seen, v.settings.sources)
         if (fresh.length) announce(fresh, v.settings, v.voices)
       }
+      const n = notifyRef.current
+      if (seen && n.enabled) notifyHeadlines(newHeadlines(fetched, seen, n.sources))
       seenIds.current = new Set([...(seen ?? []), ...fetched.map((i) => i.id)])
     } catch (e) {
       setErrors([{ feed: 'ALL', message: e instanceof Error ? e.message : 'Unknown' }])
@@ -277,6 +301,22 @@ export default function Terminal({ active = true, topBar }: TerminalProps = {}) 
         <span className="hidden sm:inline">AUTO</span>
       </Btn>
 
+      {/* Desktop notifications (desktop browsers; phones need a service worker) */}
+      {notifyPerm !== 'unsupported' && (
+        <span className="hidden sm:flex">
+          <Btn onClick={toggleNotify} active={notifySettings.enabled} accentColor="#38bdf8"
+            title={notifySettings.enabled ? 'Desktop notifications ON — click to turn off'
+              : notifyPerm === 'denied' ? 'Notifications are blocked for this site — allow them in the browser site settings'
+              : 'Desktop notifications OFF — click to turn on (turns on AUTO)'}>
+            <svg style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+              {!notifySettings.enabled && <path d="M2 2l20 20"/>}
+            </svg>
+            <span className="hidden lg:inline">NOTIFY</span>
+          </Btn>
+        </span>
+      )}
+
       {/* Voice: read new headlines aloud */}
       {canSpeak && (
         <Btn onClick={toggleVoice} active={voiceOn} accentColor="#f59e0b"
@@ -364,6 +404,11 @@ export default function Terminal({ active = true, topBar }: TerminalProps = {}) 
         voiceSettings={voiceSettings}
         onVoiceSettingsChange={changeVoiceSettings}
         voices={voices}
+        notifySettings={notifySettings}
+        notifyPerm={notifyPerm}
+        onNotifyToggle={toggleNotify}
+        onNotifySettingsChange={changeNotifySettings}
+        onNotifyTest={testNotification}
       />
 
       {/* ── HEADER ── */}
