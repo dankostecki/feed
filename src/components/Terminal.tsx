@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { fetchAllFeeds, NewsItem, Source } from '@/lib/rss'
-import { SOURCE_COLOR, SOURCE_BG, SOURCE_BD } from '@/lib/feedMeta'
+import { SOURCE_COLOR } from '@/lib/feedMeta'
 import NewsCard from './NewsCard'
 import Column from './Column'
 import DateSeparator, { dayKey } from './DateSeparator'
@@ -20,17 +20,6 @@ type ViewMode = 'GRID' | 'COLUMNS'
 type Theme    = 'dark'  | 'light'
 const DEFAULT_SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG', 'STOOQ', 'AXIOS']
 
-// ── Ticking clock ─────────────────────────────────────────────────────────
-function TickingClock() {
-  const [time, setTime] = useState('')
-  useEffect(() => {
-    const fmt = () => new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC'
-    setTime(fmt()); const id = setInterval(() => setTime(fmt()), 1000)
-    return () => clearInterval(id)
-  }, [])
-  return <span className="font-mono text-[11px] tabular-nums hidden lg:inline" style={{ color: 'var(--text-ui)' }}>{time}</span>
-}
-
 // ── Control button ────────────────────────────────────────────────────────
 function Btn({ onClick, disabled = false, active = false, accentColor = 'var(--text-ui)', title, children }: {
   onClick: () => void; disabled?: boolean; active?: boolean
@@ -38,7 +27,7 @@ function Btn({ onClick, disabled = false, active = false, accentColor = 'var(--t
 }) {
   return (
     <button onClick={onClick} disabled={disabled} title={title}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
+      className="flex items-center justify-center gap-1.5 px-3 sm:px-2.5 min-h-[40px] min-w-[40px] sm:min-h-[34px] sm:min-w-0 text-[11px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
       style={
         active
           ? { color: accentColor, backgroundColor: `${accentColor}15`, borderColor: `${accentColor}45` }
@@ -228,6 +217,53 @@ export default function Terminal() {
   const isColumns = viewMode === 'COLUMNS'
   const isDark    = theme === 'dark'
 
+  const updStr = lastUpdated ? lastUpdated.toISOString().slice(11, 19) : '—'
+  const actions = (
+    <>
+      <span className="hidden lg:inline font-mono text-[12px] tabular-nums mr-1" style={{ color: 'var(--text-ui)' }}
+        title="Last feed update (UTC)">
+        UPD {loading ? '…' : updStr}
+      </span>
+
+      {/* AUTO refresh — icon-only dot on mobile, labelled on desktop */}
+      <Btn onClick={() => setAutoRefresh((v) => !v)} active={autoRefresh} accentColor="#34d399"
+        title={autoRefresh ? 'Auto-refresh ON (60s) — click to turn off' : 'Auto-refresh OFF — click to turn on (60s)'}>
+        <span className="w-2 h-2 rounded-full flex-shrink-0"
+          style={{ backgroundColor: autoRefresh ? '#34d399' : 'var(--text-ui)', opacity: autoRefresh ? 1 : 0.55, animation: autoRefresh ? 'pulse 2s ease-in-out infinite' : 'none' }} />
+        <span className="hidden sm:inline">AUTO</span>
+      </Btn>
+
+      {/* Search + Refresh — on mobile they live in the bottom bar */}
+      <span className="hidden sm:flex">
+        <Btn onClick={() => { setSearchOpen((v) => { if (!v) setTimeout(() => searchRef.current?.focus(), 100); return !v }); if (searchOpen) setSearchQuery('') }}
+          active={searchOpen || !!q} accentColor="var(--src-ECB)" title="Search (Ctrl+K)">
+          <svg style={{ width: 13, height: 13 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <span className="hidden md:inline">SEARCH</span>
+        </Btn>
+      </span>
+      <span className="hidden sm:flex">
+        <Btn onClick={loadFeeds} disabled={loading} title="Fetch now">
+          <svg style={{ width: 13, height: 13 }} className={loading ? 'animate-spin' : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M21 12a9 9 0 11-6.219-8.56" />
+          </svg>
+          <span className="hidden md:inline">{loading ? 'SYNC…' : 'REFRESH'}</span>
+        </Btn>
+      </span>
+
+      {/* Settings gear (theme, saved, view mode and the rest live in the drawer) */}
+      <button onClick={() => setSettingsOpen(true)} title="Settings"
+        className="flex items-center justify-center min-h-[40px] min-w-[40px] sm:min-h-[34px] sm:min-w-[34px] border rounded-sm transition-all duration-150"
+        style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
+        </svg>
+      </button>
+    </>
+  )
+
   return (
     <div
       data-theme={theme}
@@ -277,89 +313,16 @@ export default function Terminal() {
           transform: (!isColumns && !headerVisible) ? 'translateY(-100%)' : 'translateY(0)',
         }}
       >
-        {/* Strip 1: branding + controls */}
-        <div className="flex items-center justify-between px-3 sm:px-4 lg:px-6 py-2 gap-2" style={{ borderBottom: '1px solid var(--border-dim)' }}>
-          {/* Logo */}
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: '#34d399', boxShadow: '0 0 6px #34d39960', animation: 'pulse 2s ease-in-out infinite' }} />
-            <span className="text-[12px] sm:text-[13px] font-bold tracking-[0.12em] uppercase whitespace-nowrap" style={{ color: 'var(--text-hi)' }}>
-              CB Terminal
-            </span>
-            <div className="hidden md:flex items-center gap-1 ml-1">
-              {sourceOrder.map((src) => (
-                <span key={src} className="text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm border"
-                  style={{ color: SOURCE_COLOR[src], borderColor: SOURCE_BD[src], backgroundColor: SOURCE_BG[src] }}>
-                  {src}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <TickingClock />
-
-            {/* Theme toggle — hidden on mobile, in drawer */}
-            <button onClick={switchTheme} title={isDark ? 'Light mode' : 'Dark mode'}
-              className="hidden sm:flex px-2 py-1.5 text-[12px] border rounded-sm font-mono transition-all duration-150"
-              style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>
-              {isDark ? '☀' : '☾'}
-            </button>
-
-            {/* AUTO refresh — hidden on mobile, in drawer */}
-            <span className="hidden sm:flex">
-              <Btn onClick={() => setAutoRefresh((v) => !v)} active={autoRefresh} accentColor="#34d399" title="Toggle auto-refresh 60s">
-                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: autoRefresh ? '#34d399' : 'var(--text-dim)', animation: autoRefresh ? 'pulse 2s ease-in-out infinite' : 'none' }} />
-                <span className="hidden sm:inline">AUTO</span>
-              </Btn>
-            </span>
-
-            {/* Search toggle — visible in header for COLUMNS view and desktop GRID */}
-            <Btn onClick={() => { setSearchOpen((v) => { if (!v) setTimeout(() => searchRef.current?.focus(), 100); return !v }); if (searchOpen) setSearchQuery('') }}
-              active={searchOpen || !!q} accentColor="var(--src-ECB)" title="Search (Ctrl+K)">
-              <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-              </svg>
-              <span className="hidden sm:inline">SEARCH</span>
-            </Btn>
-
-            {/* Refresh */}
-            <Btn onClick={loadFeeds} disabled={loading} title="Fetch now">
-              <svg style={{ width: 11, height: 11 }} className={loading ? 'animate-spin' : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M21 12a9 9 0 11-6.219-8.56" />
-              </svg>
-              <span className="hidden sm:inline">{loading ? 'SYNC…' : 'REFRESH'}</span>
-            </Btn>
-
-            {/* Bookmarks — hidden on mobile, accessible from drawer */}
-            <span className="hidden sm:flex">
-              <Btn onClick={() => { if (viewMode !== 'GRID') switchView('GRID'); handleSourceChange('SAVED') }}
-                active={sourceFilter === 'SAVED'} accentColor="#f59e0b" title="Saved bookmarks">
-                ★
-                <span className="hidden sm:inline">SAVED</span>
-                {bookmarkIds.size > 0 && <span className="tabular-nums" style={{ fontSize: '10px', opacity: 0.75 }}>{bookmarkIds.size}</span>}
-              </Btn>
-            </span>
-
-            {/* Settings gear */}
-            <button onClick={() => setSettingsOpen(true)} title="Settings"
-              className="flex items-center px-2 py-1.5 border rounded-sm transition-all duration-150"
-              style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Strip 2: GRID filters */}
-        {!isColumns && (
-          <div className="px-3 sm:px-4 lg:px-6 py-2.5">
+        {/* One row: source filters on the left, actions on the right */}
+        {!isColumns ? (
+          <div className="px-3 sm:px-4 lg:px-6 py-2">
             <FilterBar source={sourceFilter} subFilters={subFilters} counts={counts} subCounts={subCounts}
-              onSourceChange={handleSourceChange} onSubFilterToggle={handleSubFilterToggle} sourceOrder={sourceOrder} />
+              onSourceChange={handleSourceChange} onSubFilterToggle={handleSubFilterToggle} sourceOrder={sourceOrder}
+              actions={actions} />
+          </div>
+        ) : (
+          <div className="flex items-center justify-end gap-1.5 px-3 sm:px-4 lg:px-6 py-2" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+            {actions}
           </div>
         )}
 
@@ -385,7 +348,7 @@ export default function Terminal() {
               autoFocus
             />
             {q && (
-              <span className="font-mono text-[10px] shrink-0" style={{ color: items.filter((i) => matchesSearch(i, q)).length > 0 ? 'var(--src-NBP)' : 'var(--src-FED-fomc)' }}>
+              <span className="font-mono text-[12px] shrink-0" style={{ color: items.filter((i) => matchesSearch(i, q)).length > 0 ? 'var(--src-NBP)' : 'var(--src-FED-fomc)' }}>
                 {items.filter((i) => matchesSearch(i, q)).length} hits
               </span>
             )}
@@ -413,7 +376,7 @@ export default function Terminal() {
                   }
                 >
                   {src}
-                  <span style={{ opacity: 0.6, fontSize: '10px' }}>{counts[src]}</span>
+                  <span style={{ opacity: 0.6, fontSize: '12px' }}>{counts[src]}</span>
                 </button>
               )
             })}
@@ -502,14 +465,14 @@ export default function Terminal() {
 
       {/* ── BOTTOM NAV BAR (glossy, hides on scroll) ── */}
       {!isColumns && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300"
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300"
           style={{ transform: headerVisible ? 'translateY(0)' : 'translateY(100%)' }}>
 
           {/* Nav buttons */}
           <nav
             className="flex items-center justify-around"
             style={{
-              backgroundColor: isDark ? 'rgba(7,12,18,0.5)' : 'rgba(238,242,247,0.5)',
+              backgroundColor: isDark ? 'rgba(7,12,18,0.92)' : 'rgba(238,242,247,0.92)',
               backdropFilter: 'saturate(180%) blur(16px)', WebkitBackdropFilter: 'saturate(180%) blur(16px)',
               borderTop: '1px solid var(--border)',
               height: 'calc(48px + env(safe-area-inset-bottom, 0px))',

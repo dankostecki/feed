@@ -27,7 +27,7 @@ export default function DateSeparator({ date, span }: { date: Date; span?: boole
     >
       <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border)' }} />
       <span
-        className="font-mono text-[10px] font-bold tracking-[0.2em] shrink-0"
+        className="font-mono text-[12px] font-bold tracking-[0.2em] shrink-0"
         style={{ color: 'var(--text-ui)' }}
       >
         {label}

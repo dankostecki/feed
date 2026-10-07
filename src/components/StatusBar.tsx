@@ -21,7 +21,7 @@ export default function StatusBar({ totalItems, visibleItems, loading, lastUpdat
       style={{ backgroundColor: 'var(--status-bg)', borderTop: '1px solid var(--border)' }}
     >
       <div className="flex items-center justify-between px-4 py-1 gap-4">
-        <div className="flex items-center gap-3 font-mono text-[10px]">
+        <div className="flex items-center gap-3 font-mono text-[12px]">
           <span style={{ color: 'var(--text-ui)' }}>
             SHOW{' '}
             <span style={{ color: 'var(--text-md)' }}>{visibleItems}</span>
@@ -40,7 +40,7 @@ export default function StatusBar({ totalItems, visibleItems, loading, lastUpdat
           )}
         </div>
 
-        <div className="flex items-center gap-3 font-mono text-[10px]">
+        <div className="flex items-center gap-3 font-mono text-[12px]">
           {/* Some feeds failed to load (CORS / timeout) — shown as a quiet info dot */}
           {errors.length > 0 && (
             <span

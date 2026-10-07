@@ -71,15 +71,15 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
         {/* Row 1: tag + bookmark + time */}
         <div className="flex items-center gap-2">
           <span
-            className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold tracking-widest rounded-sm border font-mono shrink-0"
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[12px] font-bold tracking-widest rounded-sm border font-mono min-w-0"
             style={{
               color: read ? 'var(--text-ui)' : meta.color,
               backgroundColor: read ? 'transparent' : meta.bg,
               borderColor: read ? 'var(--border)' : meta.border,
             }}
           >
-            <span style={{ fontSize: 9 }}>{meta.symbol}</span>
-            {meta.label}
+            <span className="shrink-0" style={{ fontSize: 11 }}>{meta.symbol}</span>
+            <span className="truncate">{meta.label}</span>
           </span>
 
           <div className="flex-1" />
@@ -99,7 +99,7 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
           <time
             dateTime={item.pubDate.toISOString()}
             title={abs}
-            className="font-mono text-[10px] whitespace-nowrap shrink-0"
+            className="font-mono text-[12px] whitespace-nowrap shrink-0"
             style={{ color: 'var(--text-lo)' }}
           >
             {rel}
@@ -116,10 +116,10 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
 
         {/* Bottom row: timestamp …… comet, copy */}
         <div
-          className="flex items-center gap-2 pt-1.5 mt-auto font-mono text-[10px]"
+          className="flex items-center gap-2 pt-1.5 mt-auto font-mono text-[11px]"
           style={{ borderTop: '1px solid var(--border-dim)', color: 'var(--text-lo)' }}
         >
-          <span>{abs}</span>
+          <span className="whitespace-nowrap">{abs}</span>
           <div className="flex-1" />
           <button
             onClick={handleComet}

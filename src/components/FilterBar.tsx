@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { Source } from '@/lib/rss'
 import { FEED_META, SOURCE_COLOR, SOURCE_BG, SOURCE_BD, SOURCE_SUBFEEDS } from '@/lib/feedMeta'
 
@@ -13,6 +14,7 @@ interface Props {
   onSourceChange: (s: Filter) => void
   onSubFilterToggle: (label: string) => void
   sourceOrder?: Source[]
+  actions?: React.ReactNode
 }
 
 // Each source button has a fixed accent — vivid in both dark and light
@@ -40,7 +42,19 @@ const DEFAULT_SOURCES: { value: Filter; label: string }[] = [
   { value: 'SAVED',     label: 'SAVED'     },
 ]
 
-export default function FilterBar({ source, subFilters, counts, subCounts, onSourceChange, onSubFilterToggle, sourceOrder }: Props) {
+export default function FilterBar({ source, subFilters, counts, subCounts, onSourceChange, onSubFilterToggle, sourceOrder, actions }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [fade, setFade] = useState(false)
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const update = () => setFade(el.scrollWidth - el.clientWidth - el.scrollLeft > 4)
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    const ro = new ResizeObserver(update); ro.observe(el)
+    return () => { el.removeEventListener('scroll', update); ro.disconnect() }
+  }, [counts, sourceOrder])
+
   // Use sourceOrder if provided: ALL first, then ordered sources, then SAVED at end
   const SOURCES = sourceOrder
     ? [
@@ -54,7 +68,9 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
   return (
     <div className="flex flex-col gap-2 w-full">
       {/* ── Source buttons — clean, no dots/symbols inside ── */}
-      <div className="flex items-center gap-1.5 overflow-x-auto sm:flex-wrap no-scrollbar">
+      <div className="flex items-center gap-2 w-full min-w-0">
+      <div ref={scrollRef} className="flex items-center gap-1.5 overflow-x-auto no-scrollbar min-w-0 flex-1"
+        style={fade ? { WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 28px), transparent)', maskImage: 'linear-gradient(to right, #000 calc(100% - 28px), transparent)' } : undefined}>
         {SOURCES.map(({ value, label }) => {
           const isActive = source === value
           const { color, bg, bd } = BTN[value]
@@ -64,7 +80,7 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
             <button
               key={value}
               onClick={() => onSourceChange(value)}
-              className="flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-100 shrink-0 sm:shrink"
+              className="flex items-center gap-2 px-3.5 py-2.5 sm:py-2 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-100 shrink-0"
               style={
                 isActive
                   ? {
@@ -83,7 +99,7 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
               {label}
               <span
                 className="tabular-nums font-mono"
-                style={{ fontSize: '10px', opacity: 0.75 }}
+                style={{ fontSize: '12px', opacity: 0.75 }}
               >
                 {count}
               </span>
@@ -91,12 +107,14 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
           )
         })}
       </div>
+      {actions && <div className="flex items-center gap-1.5 shrink-0">{actions}</div>}
+      </div>
 
       {/* ── Sub-feed channel chips ── */}
       {subfeeds.length > 1 && (
         <div className="flex items-center gap-1 overflow-x-auto sm:flex-wrap no-scrollbar pl-0.5">
           <span
-            className="text-[9px] font-mono tracking-widest uppercase mr-1"
+            className="text-[11px] font-mono tracking-widest uppercase mr-1"
             style={{ color: 'var(--text-ui)' }}
           >
             CHANNEL
@@ -110,23 +128,23 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
               <button
                 key={lbl}
                 onClick={() => onSubFilterToggle(lbl)}
-                className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold tracking-wider border rounded-sm font-mono transition-all duration-100 shrink-0 sm:shrink"
+                className="flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-bold tracking-wider border rounded-sm font-mono transition-all duration-100 shrink-0 sm:shrink"
                 style={
                   isOn
                     ? { color: meta.color, backgroundColor: meta.bg, borderColor: meta.border, boxShadow: `0 0 8px ${meta.border}` }
                     : { color: meta.color, backgroundColor: 'transparent', borderColor: meta.border }
                 }
               >
-                <span style={{ fontSize: '9px' }}>{meta.symbol}</span>
+                <span style={{ fontSize: '11px' }}>{meta.symbol}</span>
                 {lbl}
-                <span style={{ opacity: 0.65, fontSize: '9px' }}>{count}</span>
+                <span style={{ opacity: 0.65, fontSize: '11px' }}>{count}</span>
               </button>
             )
           })}
           {subFilters.size > 0 && (
             <button
               onClick={() => subFilters.forEach((lbl) => onSubFilterToggle(lbl))}
-              className="px-2 py-1 text-[9px] font-mono tracking-widest border rounded-sm"
+              className="px-2 py-1 text-[11px] font-mono tracking-widest border rounded-sm"
               style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}
             >
               ✕ CLEAR
