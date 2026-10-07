@@ -41,7 +41,12 @@ function Btn({ onClick, disabled = false, active = false, accentColor = 'var(--t
 }
 
 // ── Main Terminal ─────────────────────────────────────────────────────────
-export default function Terminal() {
+interface TerminalProps {
+  active?: boolean          // false: kept running in the background but hidden (MARKET tab shown)
+  topBar?: React.ReactNode  // app bar with the MARKET / NEWS tabs, rendered as the first header strip
+}
+
+export default function Terminal({ active = true, topBar }: TerminalProps = {}) {
   const [items,          setItems]         = useState<NewsItem[]>([])
   const [viewMode,       setViewMode]      = useState<ViewMode>('GRID')
   const [theme,          setTheme]         = useState<Theme>('dark')
@@ -67,6 +72,8 @@ export default function Terminal() {
   const lastScrollY  = useRef(0)
   const feedRef      = useRef<HTMLDivElement>(null)
   const headerRef    = useRef<HTMLElement>(null)
+  const activeRef    = useRef(active)
+  useEffect(() => { activeRef.current = active; if (active) { lastScrollY.current = 0; setHeaderVisible(true) } }, [active])
 
   // ── Voice (text-to-speech for new headlines) ──
   const [voiceOn,       setVoiceOn]       = useState(false)
@@ -187,6 +194,7 @@ export default function Terminal() {
     if (viewMode === 'COLUMNS') return
     const threshold = 10
     function onScroll() {
+      if (!activeRef.current) return
       const y = window.scrollY
       if (y < 60) { setHeaderVisible(true); lastScrollY.current = y; return }
       if (y - lastScrollY.current > threshold) setHeaderVisible(false)
@@ -207,6 +215,7 @@ export default function Terminal() {
   // Focus search on Ctrl+K or /  (when not typing in another input)
   useEffect(() => {
     function handler(e: KeyboardEvent) {
+      if (!activeRef.current) return
       const tag = (e.target as HTMLElement).tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true); scrollToTop(); setTimeout(() => searchRef.current?.focus(), 100) }
@@ -320,6 +329,7 @@ export default function Terminal() {
         height: isColumns ? '100dvh' : undefined,
         minHeight: isColumns ? undefined : '100dvh',
         overflow: isColumns ? 'hidden' : undefined,
+        display: active ? undefined : 'none',
       }}
     >
       {/* Subtle vignette — dark only, no scanlines */}
@@ -365,6 +375,8 @@ export default function Terminal() {
           transform: (!isColumns && !headerVisible) ? 'translateY(-100%)' : 'translateY(0)',
         }}
       >
+        {topBar}
+
         {/* One row: source filters on the left, actions on the right */}
         {!isColumns ? (
           <div className="px-3 sm:px-4 lg:px-6 py-2">

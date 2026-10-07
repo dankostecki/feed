@@ -50,7 +50,7 @@ export default function StatusBar({ totalItems, visibleItems, loading, lastUpdat
               ○ {errors.length} źródła niedostępne
             </span>
           )}
-          <span style={{ color: 'var(--text-dim)' }}>FED·ECB·NBP·STOOQ v1.2</span>
+          <span style={{ color: 'var(--text-dim)' }}>FED·ECB·NBP·STOOQ v2.0</span>
         </div>
       </div>
     </footer>

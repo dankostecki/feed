@@ -454,7 +454,7 @@ export default function SettingsDrawer({
           <Section title="About">
             <div className="pt-1 flex flex-col gap-1.5">
               {[
-                ['App', 'CB Terminal v1.2'],
+                ['App', 'Hyperliquid TradFi Terminal v2.0'],
                 ['Sources', 'FED · ECB · NBP · REUTERS · BLOOMBERG · STOOQ · AXIOS'],
                 ['Storage', 'Browser localStorage only'],
                 ['Network', 'Vercel serverless API'],
