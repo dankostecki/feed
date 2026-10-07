@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { NewsItem, Source } from '@/lib/rss'
 import { buildJevExport, itemsInWindow } from '@/lib/jevExport'
 import { SOURCE_COLOR } from '@/lib/feedMeta'
+import { VoiceSettings, ALL_SOURCES, voicesFor, speak, stopSpeaking, Lang } from '@/lib/speech'
 
 interface Props {
   open: boolean
@@ -27,6 +28,11 @@ interface Props {
   sourceOrder?: Source[]
   onSourceOrderChange?: (order: Source[]) => void
   items?: NewsItem[]
+  voiceOn?: boolean
+  onVoiceToggle?: () => void
+  voiceSettings?: VoiceSettings
+  onVoiceSettingsChange?: (v: VoiceSettings) => void
+  voices?: SpeechSynthesisVoice[]
 }
 
 function Row({ label, value, action, actionLabel, danger = false }: {
@@ -102,6 +108,97 @@ function JevExportRow({ items, hours }: { items: NewsItem[]; hours: number }) {
   )
 }
 
+const SELECT_CLS = 'bg-transparent border rounded-sm font-mono text-[12px] px-2 py-1.5 max-w-[60%] min-w-0'
+const SELECT_STYLE = { color: 'var(--text-hi)', borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }
+
+function VoiceSection({ on, onToggle, settings, onChange, voices }: {
+  on: boolean; onToggle: () => void; settings: VoiceSettings; onChange: (v: VoiceSettings) => void; voices: SpeechSynthesisVoice[]
+}) {
+  const set = (patch: Partial<VoiceSettings>) => onChange({ ...settings, ...patch })
+  const en = voicesFor(voices, 'en'), pl = voicesFor(voices, 'pl')
+  const toggleSource = (src: typeof ALL_SOURCES[number]) =>
+    set({ sources: settings.sources.includes(src) ? settings.sources.filter((x) => x !== src) : [...settings.sources, src] })
+  const test = (lang: Lang) => {
+    stopSpeaking()
+    speak(lang === 'pl' ? 'Stooq: Test polskiego głosu. Kurs złotego bez zmian.' : 'Reuters: Testing the English voice. Oil prices are steady.', lang, settings, voices)
+  }
+  const btn = 'px-2.5 py-1.5 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150 shrink-0'
+  const row = 'flex items-center justify-between gap-3 py-2.5'
+  const line = { borderBottom: '1px solid var(--border-dim)' }
+  const label = (t: string, sub?: string) => (
+    <div className="flex flex-col leading-none gap-1 min-w-0">
+      <span className="text-[12px] font-mono" style={{ color: 'var(--text-hi)' }}>{t}</span>
+      {sub && <span className="text-[11px] font-mono" style={{ color: 'var(--text-ui)' }}>{sub}</span>}
+    </div>
+  )
+  const voiceSelect = (lang: Lang, list: SpeechSynthesisVoice[], value: string, key: 'voiceEn' | 'voicePl') => (
+    <div className={row} style={line}>
+      {label(lang === 'pl' ? 'Polish voice' : 'English voice', lang === 'pl' ? 'NBP, Stooq' : 'FED, ECB, Reuters, Bloomberg, Axios')}
+      <div className="flex items-center gap-1.5 min-w-0">
+        {list.length > 0 ? (
+          <select value={value} onChange={(e) => set({ [key]: e.target.value } as Partial<VoiceSettings>)} className={SELECT_CLS} style={SELECT_STYLE}>
+            <option value="">Auto</option>
+            {list.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{v.name}</option>)}
+          </select>
+        ) : (
+          <span className="text-[11px] font-mono" style={{ color: '#f87171' }}>{voices.length ? 'not installed' : 'loading…'}</span>
+        )}
+        <button onClick={() => test(lang)} className={btn} style={BTN_STYLE} title="Play a test sentence">TEST</button>
+      </div>
+    </div>
+  )
+
+  return (
+    <Section title="Voice">
+      <div className={row} style={line}>
+        {label('Read new headlines aloud', on ? 'On · auto-refresh 60s' : 'Off · turn on again after reloading the page')}
+        <button onClick={onToggle} className={btn}
+          style={on ? { color: '#f59e0b', borderColor: '#f59e0b80', backgroundColor: '#f59e0b18' } : BTN_STYLE}>
+          {on ? 'ON' : 'OFF'}
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-2 py-2.5" style={line}>
+        {label('Sources to read')}
+        <div className="flex flex-wrap gap-1.5">
+          {ALL_SOURCES.map((src) => {
+            const active = settings.sources.includes(src)
+            return (
+              <button key={src} onClick={() => toggleSource(src)} className={btn}
+                style={active
+                  ? { color: SOURCE_COLOR[src], borderColor: SOURCE_COLOR[src] + '80', backgroundColor: SOURCE_COLOR[src] + '18' }
+                  : { color: 'var(--text-ui)', borderColor: 'var(--border)', opacity: 0.6 }}>
+                {src}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {voiceSelect('en', en, settings.voiceEn, 'voiceEn')}
+      {voiceSelect('pl', pl, settings.voicePl, 'voicePl')}
+      {voices.length > 0 && pl.length === 0 && (
+        <p className="text-[11px] font-mono leading-relaxed py-2" style={{ color: '#f87171' }}>
+          No Polish voice in this browser — Polish headlines would sound wrong. Try Edge or Chrome, or add Polish speech in system settings.
+        </p>
+      )}
+
+      <div className={row} style={line}>
+        {label('Speed')}
+        <select value={settings.rate} onChange={(e) => set({ rate: Number(e.target.value) })} className={SELECT_CLS} style={SELECT_STYLE}>
+          {[0.8, 0.9, 1, 1.1, 1.25, 1.5].map((r) => <option key={r} value={r}>{r}×</option>)}
+        </select>
+      </div>
+      <div className={row} style={line}>
+        {label('Max per refresh', 'The rest is summed up as "i jeszcze N"')}
+        <select value={settings.maxPerRefresh} onChange={(e) => set({ maxPerRefresh: Number(e.target.value) })} className={SELECT_CLS} style={SELECT_STYLE}>
+          {[1, 2, 3, 5, 10].map((n) => <option key={n} value={n}>{n}</option>)}
+        </select>
+      </div>
+    </Section>
+  )
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-0">
@@ -125,6 +222,7 @@ export default function SettingsDrawer({
   viewMode, onViewModeChange, onShowSaved,
   onScrollToTop, onSearch, onRefresh, loading,
   sourceOrder, onSourceOrderChange, items,
+  voiceOn, onVoiceToggle, voiceSettings, onVoiceSettingsChange, voices = [],
 }: Props) {
   function moveSource(idx: number, dir: -1 | 1) {
     if (!sourceOrder || !onSourceOrderChange) return
@@ -260,6 +358,10 @@ export default function SettingsDrawer({
                 </div>
               )}
             </Section>
+          )}
+
+          {voiceSettings && onVoiceToggle && onVoiceSettingsChange && (
+            <VoiceSection on={!!voiceOn} onToggle={onVoiceToggle} settings={voiceSettings} onChange={onVoiceSettingsChange} voices={voices} />
           )}
 
           {items && (
