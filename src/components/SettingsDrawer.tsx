@@ -289,6 +289,18 @@ export default function SettingsDrawer({
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-6">
 
+          {/* Jev export first: used on every visit */}
+          {items && (
+            <Section title="Export for Jev">
+              <JevExportRow items={items} hours={4} />
+              <JevExportRow items={items} hours={8} />
+              <JevExportRow items={items} hours={24} />
+              <p className="text-[12px] font-mono leading-relaxed pt-2" style={{ color: 'var(--text-ui)' }}>
+                console.typesafe.ai/playground: STATE → State field, QUESTIONS → Questions field. Higher probability = more important.
+              </p>
+            </Section>
+          )}
+
           {/* Quick actions — Home, Search, Refresh (useful when bottom nav is hidden by Chrome) */}
           {(onScrollToTop || onSearch || onRefresh) && (
             <Section title="Quick Actions">
@@ -362,17 +374,6 @@ export default function SettingsDrawer({
 
           {voiceSettings && onVoiceToggle && onVoiceSettingsChange && (
             <VoiceSection on={!!voiceOn} onToggle={onVoiceToggle} settings={voiceSettings} onChange={onVoiceSettingsChange} voices={voices} />
-          )}
-
-          {items && (
-            <Section title="Export for Jev">
-              <JevExportRow items={items} hours={4} />
-              <JevExportRow items={items} hours={8} />
-              <JevExportRow items={items} hours={24} />
-              <p className="text-[12px] font-mono leading-relaxed pt-2" style={{ color: 'var(--text-ui)' }}>
-                console.typesafe.ai/playground: STATE → State field, QUESTIONS → Questions field. Higher probability = more important.
-              </p>
-            </Section>
           )}
 
           <Section title="Display">
