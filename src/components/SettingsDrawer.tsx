@@ -29,7 +29,7 @@ interface Props {
   sourceOrder?: Source[]
   onSourceOrderChange?: (order: Source[]) => void
   items?: NewsItem[]
-  onJevRank?: (hours: number) => void
+  onTopNews?: (hours: number) => void
   voiceOn?: boolean
   onVoiceToggle?: () => void
   voiceSettings?: VoiceSettings
@@ -72,7 +72,7 @@ function Row({ label, value, action, actionLabel, danger = false }: {
 
 const BTN_STYLE = { color: 'var(--text-ui)', borderColor: 'var(--border)' }
 
-function JevExportRow({ items, hours, onRank }: { items: NewsItem[]; hours: number; onRank?: (hours: number) => void }) {
+function TopNewsRow({ items, hours, onRank }: { items: NewsItem[]; hours: number; onRank?: (hours: number) => void }) {
   const count = itemsInWindow(items, hours).length
 
   function download() {
@@ -92,11 +92,11 @@ function JevExportRow({ items, hours, onRank }: { items: NewsItem[]; hours: numb
         <span className="text-[12px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{count} headlines</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <button onClick={download} disabled={!count} className={btn} style={BTN_STYLE} title="Download .txt for the Jev playground">TXT</button>
+        <button onClick={download} disabled={!count} className={btn} style={BTN_STYLE} title="Download the headlines as .txt">TXT</button>
         {onRank && (
           <button onClick={() => onRank(hours)} disabled={!count} className={btn}
             style={{ color: '#f59e0b', borderColor: '#f59e0b80', backgroundColor: '#f59e0b14' }}
-            title={`Rank the headlines of the last ${hours}h with Jev and show the most important`}>
+            title={`Most important headlines of the last ${hours}h`}>
             TOP {hours}H ▶
           </button>
         )}
@@ -116,8 +116,8 @@ function NotifySection({ settings, perm, onToggle, onChange, onTest }: {
   const line = { borderBottom: '1px solid var(--border-dim)' }
   const on = settings.enabled && perm === 'granted'
   const status = perm === 'unsupported' ? 'Not supported in this browser'
-    : perm === 'denied' ? 'Blocked — allow notifications for this site in the browser (padlock icon in the address bar)'
-    : on ? 'On · auto-refresh 60s · works while this page is open' : 'Off'
+    : perm === 'denied' ? 'Blocked in browser site settings'
+    : on ? 'On' : 'Off'
   const toggleSource = (src: typeof ALL_SOURCES[number]) =>
     onChange({ ...settings, sources: settings.sources.includes(src) ? settings.sources.filter((x) => x !== src) : [...settings.sources, src] })
   return (
@@ -177,7 +177,7 @@ function VoiceSection({ on, onToggle, settings, onChange, voices }: {
   )
   const voiceSelect = (lang: Lang, list: SpeechSynthesisVoice[], value: string, key: 'voiceEn' | 'voicePl') => (
     <div className={row} style={line}>
-      {label(lang === 'pl' ? 'Polish voice' : 'English voice', lang === 'pl' ? 'NBP, Stooq' : 'FED, ECB, Reuters, Bloomberg, Axios')}
+      {label(lang === 'pl' ? 'Polish voice' : 'English voice')}
       <div className="flex items-center gap-1.5 min-w-0">
         {list.length > 0 ? (
           <select value={value} onChange={(e) => set({ [key]: e.target.value } as Partial<VoiceSettings>)} className={SELECT_CLS} style={SELECT_STYLE}>
@@ -195,7 +195,7 @@ function VoiceSection({ on, onToggle, settings, onChange, voices }: {
   return (
     <Section title="Voice">
       <div className={row} style={line}>
-        {label('Read new headlines aloud', on ? 'On · auto-refresh 60s' : 'Off · turn on again after reloading the page')}
+        {label('Read new headlines aloud', on ? 'On' : 'Off')}
         <button onClick={onToggle} className={btn}
           style={on ? { color: '#f59e0b', borderColor: '#f59e0b80', backgroundColor: '#f59e0b18' } : BTN_STYLE}>
           {on ? 'ON' : 'OFF'}
@@ -223,7 +223,7 @@ function VoiceSection({ on, onToggle, settings, onChange, voices }: {
       {voiceSelect('pl', pl, settings.voicePl, 'voicePl')}
       {voices.length > 0 && pl.length === 0 && (
         <p className="text-[11px] font-mono leading-relaxed py-2" style={{ color: '#f87171' }}>
-          No Polish voice in this browser — Polish headlines would sound wrong. Try Edge or Chrome, or add Polish speech in system settings.
+          No Polish voice in this browser.
         </p>
       )}
 
@@ -234,7 +234,7 @@ function VoiceSection({ on, onToggle, settings, onChange, voices }: {
         </select>
       </div>
       <div className={row} style={line}>
-        {label('Max per refresh', 'The rest is summed up as "i jeszcze N"')}
+        {label('Max per refresh')}
         <select value={settings.maxPerRefresh} onChange={(e) => set({ maxPerRefresh: Number(e.target.value) })} className={SELECT_CLS} style={SELECT_STYLE}>
           {[1, 2, 3, 5, 10].map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
@@ -265,7 +265,7 @@ export default function SettingsDrawer({
   onThemeToggle, onAutoRefreshToggle,
   viewMode, onViewModeChange, onShowSaved,
   onScrollToTop, onSearch, onRefresh, loading,
-  sourceOrder, onSourceOrderChange, items, onJevRank,
+  sourceOrder, onSourceOrderChange, items, onTopNews,
   voiceOn, onVoiceToggle, voiceSettings, onVoiceSettingsChange, voices = [],
   notifySettings, notifyPerm = 'unsupported', onNotifyToggle, onNotifySettingsChange, onNotifyTest,
 }: Props) {
@@ -334,15 +334,12 @@ export default function SettingsDrawer({
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-6">
 
-          {/* Jev export first: used on every visit */}
+          {/* Top news first: used on every visit */}
           {items && (
-            <Section title="Jev · top news">
-              <JevExportRow items={items} hours={4} onRank={onJevRank} />
-              <JevExportRow items={items} hours={8} onRank={onJevRank} />
-              <JevExportRow items={items} hours={24} onRank={onJevRank} />
-              <p className="text-[12px] font-mono leading-relaxed pt-2" style={{ color: 'var(--text-ui)' }}>
-                TOP: Jev ranks the headlines by market importance (one API call, reused for 5 min). TXT: file for the playground.
-              </p>
+            <Section title="Top news">
+              <TopNewsRow items={items} hours={4} onRank={onTopNews} />
+              <TopNewsRow items={items} hours={8} onRank={onTopNews} />
+              <TopNewsRow items={items} hours={24} onRank={onTopNews} />
             </Section>
           )}
 

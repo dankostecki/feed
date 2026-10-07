@@ -25,15 +25,15 @@ Hosted on Vercel (Hobby); every merge to `main` deploys to production.
 | `TYPESAFE_API_URL`, `TYPESAFE_MODEL` | optional | Defaults: `https://api.typesafe.ai/v1/systemone`, `jev-latest` |
 
 Without the key everything else works; the TOP view explains how to set it.
-`/api/jev?hours=4|8|24` ranks only headlines the server fetched itself and reuses a ranking for 5 minutes (memory + CDN cache), so each window costs at most one Jev call per 5 minutes.
+`/api/top?hours=4|8|24` ranks only headlines the server fetched itself and reuses a ranking for 5 minutes (memory + CDN cache), so each window costs at most one Jev call per 5 minutes.
 
 ## Layout
 
 | Path | What |
 |---|---|
 | `src/lib/feeds.ts`, `src/app/api/rss/route.ts` | RSS sources; server route that fetches them (avoids browser CORS) |
-| `src/app/api/jev/route.ts`, `src/lib/jevApi.ts`, `src/lib/rssServer.ts` | TOP news: server-side RSS parsing and the Jev call |
-| `src/components/JevTop.tsx` | TOP NEWS view |
+| `src/app/api/top/route.ts`, `src/lib/jevApi.ts`, `src/lib/rssServer.ts` | TOP news: server-side RSS parsing and the ranking call (TypeSafe Jev) |
+| `src/components/TopNews.tsx` | TOP NEWS view |
 | `src/components/App.tsx` | Tabs, app bar, URL / remembered tab |
 | `src/components/market/` | MARKET tab: table, chart sheet, styles |
 | `src/lib/market.ts` | Hyperliquid API, instruments, formatting |

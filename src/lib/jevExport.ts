@@ -98,10 +98,8 @@ export function buildJevExport(items: NewsItem[], hours: number, now = new Date(
   const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}-${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}`
 
   const file = [
-    `JEV EXPORT · last ${hours}h · ${utc(from)} – ${utc(now)} · ${count} headlines`,
-    'console.typesafe.ai/playground: paste section 1 into STATE and section 2 into QUESTIONS, then Run.',
-    'Result: probability per headline. Higher probability = more important. Sort descending for the ranking.',
-    chunks.length > 1 ? `Note: more than ${MAX_OPTIONS} headlines, split into ${chunks.length} questions (Jev limit 255 options each); each is ranked separately.` : '',
+    `NEWS EXPORT · last ${hours}h · ${utc(from)} – ${utc(now)} · ${count} headlines`,
+    chunks.length > 1 ? `${chunks.length} questions (max ${MAX_OPTIONS} options each), ranked separately.` : '',
     '',
     '===== 1. STATE (copy everything until section 2) =====',
     state,
@@ -111,5 +109,5 @@ export function buildJevExport(items: NewsItem[], hours: number, now = new Date(
     '',
   ].filter((l, i, a) => !(l === '' && a[i - 1] === '')).join('\n')
 
-  return { count, state, questions: questionsJson, file, filename: `jev-news-${hours}h-${stamp}.txt` }
+  return { count, state, questions: questionsJson, file, filename: `news-${hours}h-${stamp}.txt` }
 }
