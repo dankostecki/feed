@@ -9,6 +9,7 @@ import DateSeparator, { dayKey } from './DateSeparator'
 import FilterBar, { Filter } from './FilterBar'
 import StatusBar from './StatusBar'
 import SettingsDrawer from './SettingsDrawer'
+import { VoiceSettings, DEFAULT_VOICE_SETTINGS, loadVoiceSettings, saveVoiceSettings, speechSupported, newHeadlines, announce, speak, stopSpeaking, voicesFor } from '@/lib/speech'
 
 const READ_KEY     = 'cbt:read-articles'
 const BOOKMARK_KEY = 'cbt:bookmarks'
@@ -67,6 +68,33 @@ export default function Terminal() {
   const feedRef      = useRef<HTMLDivElement>(null)
   const headerRef    = useRef<HTMLElement>(null)
 
+  // ── Voice (text-to-speech for new headlines) ──
+  const [voiceOn,       setVoiceOn]       = useState(false)
+  const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(DEFAULT_VOICE_SETTINGS)
+  const [voices,        setVoices]        = useState<SpeechSynthesisVoice[]>([])
+  const [canSpeak,      setCanSpeak]      = useState(false) // set after mount (no window during SSR)
+  const voiceRef = useRef({ on: false, settings: DEFAULT_VOICE_SETTINGS, voices: [] as SpeechSynthesisVoice[] })
+  const seenIds  = useRef<Set<string> | null>(null) // null until the first fetch: nothing is read on page load
+  useEffect(() => { voiceRef.current = { on: voiceOn, settings: voiceSettings, voices } }, [voiceOn, voiceSettings, voices])
+  useEffect(() => {
+    setVoiceSettings(loadVoiceSettings())
+    if (!speechSupported()) return
+    setCanSpeak(true)
+    const update = () => setVoices(window.speechSynthesis.getVoices())
+    update()
+    window.speechSynthesis.addEventListener('voiceschanged', update)
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', update)
+  }, [])
+  function changeVoiceSettings(v: VoiceSettings) { setVoiceSettings(v); saveVoiceSettings(v) }
+  function toggleVoice() {
+    if (voiceOn) { stopSpeaking(); setVoiceOn(false); return }
+    setVoiceOn(true)
+    setAutoRefresh(true) // voice only makes sense with auto-refresh
+    // Speaking inside the click also unlocks speech in browsers that require a user gesture
+    const pl = voicesFor(voices, 'pl').length > 0
+    speak(pl ? 'Głos włączony.' : 'Voice on.', pl ? 'pl' : 'en', voiceSettings, voices)
+  }
+
   // Restore persisted state
   useEffect(() => {
     try { const r = localStorage.getItem(READ_KEY);     if (r) setReadIds(new Set(JSON.parse(r)))      } catch {}
@@ -107,6 +135,13 @@ export default function Terminal() {
     try {
       const { items: fetched, errors: errs } = await fetchAllFeeds()
       setItems(fetched); setErrors(errs); setLastUpdated(new Date())
+      const seen = seenIds.current
+      const v = voiceRef.current
+      if (seen && v.on) {
+        const fresh = newHeadlines(fetched, seen, v.settings)
+        if (fresh.length) announce(fresh, v.settings, v.voices)
+      }
+      seenIds.current = new Set([...(seen ?? []), ...fetched.map((i) => i.id)])
     } catch (e) {
       setErrors([{ feed: 'ALL', message: e instanceof Error ? e.message : 'Unknown' }])
     } finally { setLoading(false); setInitialLoaded(true) }
@@ -233,6 +268,18 @@ export default function Terminal() {
         <span className="hidden sm:inline">AUTO</span>
       </Btn>
 
+      {/* Voice: read new headlines aloud */}
+      {canSpeak && (
+        <Btn onClick={toggleVoice} active={voiceOn} accentColor="#f59e0b"
+          title={voiceOn ? 'Voice ON — new headlines are read aloud. Click to turn off' : 'Voice OFF — click to read new headlines aloud (turns on AUTO)'}>
+          <svg style={{ width: 14, height: 14 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+            {voiceOn ? <><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/></> : <path d="M23 9l-6 6M17 9l6 6"/>}
+          </svg>
+          <span className="hidden md:inline">VOICE</span>
+        </Btn>
+      )}
+
       {/* Search + Refresh — on mobile they live in the bottom bar */}
       <span className="hidden sm:flex">
         <Btn onClick={() => { setSearchOpen((v) => { if (!v) setTimeout(() => searchRef.current?.focus(), 100); return !v }); if (searchOpen) setSearchQuery('') }}
@@ -302,6 +349,11 @@ export default function Terminal() {
         sourceOrder={sourceOrder}
         onSourceOrderChange={changeSourceOrder}
         items={items}
+        voiceOn={voiceOn}
+        onVoiceToggle={toggleVoice}
+        voiceSettings={voiceSettings}
+        onVoiceSettingsChange={changeVoiceSettings}
+        voices={voices}
       />
 
       {/* ── HEADER ── */}
