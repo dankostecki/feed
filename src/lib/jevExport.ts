@@ -36,7 +36,19 @@ export interface JevExport {
   filename: string
 }
 
-export function buildJevExport(items: NewsItem[], hours: number, now = new Date()): JevExport {
+export type JevQuestions = Record<string, { type: 'choice'; instructions: string; criteria: Record<string, string> }>
+
+export interface JevRequest {
+  count: number
+  from: Date
+  state: string
+  questions: JevQuestions
+  byLabel: Record<string, NewsItem> // option label → headline, to read the answer back
+}
+
+// The two playground fields (State, Questions) for the headlines of the last `hours`.
+// Used both for the .txt export and for the server call to the Jev API.
+export function buildJevRequest(items: NewsItem[], hours: number, now = new Date()): JevRequest {
   const list = itemsInWindow(items, hours, now)
   const from = new Date(now.getTime() - hours * 3600_000)
   const digits = String(Math.max(list.length, 1)).length
@@ -50,11 +62,12 @@ export function buildJevExport(items: NewsItem[], hours: number, now = new Date(
   const chunks: NewsItem[][] = []
   for (let i = 0; i < list.length; i += size) chunks.push(list.slice(i, i + size))
 
-  const questions: Record<string, { type: 'choice'; instructions: string; criteria: Record<string, string> }> = {}
+  const questions: JevQuestions = {}
+  const byLabel: Record<string, NewsItem> = {}
   chunks.forEach((chunk, c) => {
     const offset = c * size
     const criteria: Record<string, string> = {}
-    chunk.forEach((it, j) => { criteria[label(offset + j, it)] = line(it) })
+    chunk.forEach((it, j) => { const l = label(offset + j, it); criteria[l] = line(it); byLabel[l] = it })
     const key = chunks.length > 1 ? `most_important_${c + 1}` : 'most_important'
     questions[key] = {
       type: 'choice',
@@ -75,11 +88,17 @@ export function buildJevExport(items: NewsItem[], hours: number, now = new Date(
     'Low importance: opinion and analysis without new facts, routine speeches with no policy signal, single-company news with no market-wide effect, lifestyle, sport, minor local news.',
   ].join('\n')
 
+  return { count: list.length, from, state, questions, byLabel }
+}
+
+export function buildJevExport(items: NewsItem[], hours: number, now = new Date()): JevExport {
+  const { count, from, state, questions } = buildJevRequest(items, hours, now)
+  const chunks = Object.keys(questions)
   const questionsJson = JSON.stringify(questions, null, 2)
   const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}-${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}`
 
   const file = [
-    `JEV EXPORT · last ${hours}h · ${utc(from)} – ${utc(now)} · ${list.length} headlines`,
+    `JEV EXPORT · last ${hours}h · ${utc(from)} – ${utc(now)} · ${count} headlines`,
     'console.typesafe.ai/playground: paste section 1 into STATE and section 2 into QUESTIONS, then Run.',
     'Result: probability per headline. Higher probability = more important. Sort descending for the ranking.',
     chunks.length > 1 ? `Note: more than ${MAX_OPTIONS} headlines, split into ${chunks.length} questions (Jev limit 255 options each); each is ranked separately.` : '',
@@ -92,5 +111,5 @@ export function buildJevExport(items: NewsItem[], hours: number, now = new Date(
     '',
   ].filter((l, i, a) => !(l === '' && a[i - 1] === '')).join('\n')
 
-  return { count: list.length, state, questions: questionsJson, file, filename: `jev-news-${hours}h-${stamp}.txt` }
+  return { count, state, questions: questionsJson, file, filename: `jev-news-${hours}h-${stamp}.txt` }
 }
