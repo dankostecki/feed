@@ -59,11 +59,11 @@ export default function Column({ source, items, subFilters, subCounts, readIds, 
             <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }} />
             <div className="flex flex-col leading-none gap-0.5">
               <span className="text-[13px] font-bold tracking-[0.12em] uppercase" style={{ color }}>{source}</span>
-              <span className="text-[9px] font-mono" style={{ color: 'var(--text-ui)' }}>{SOURCE_FULL[source]}</span>
+              <span className="text-[11px] font-mono" style={{ color: 'var(--text-ui)' }}>{SOURCE_FULL[source]}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {loading && <span className="text-[9px] font-mono animate-pulse" style={{ color }}>SYNC</span>}
+            {loading && <span className="text-[11px] font-mono animate-pulse" style={{ color }}>SYNC</span>}
             <span className="text-[12px] font-mono tabular-nums font-bold" style={{ color }}>{visible.length}</span>
           </div>
         </div>
@@ -81,26 +81,26 @@ export default function Column({ source, items, subFilters, subCounts, readIds, 
                   <button
                     key={lbl}
                     onClick={() => onSubFilterToggle(lbl)}
-                    className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold tracking-wider border rounded-sm font-mono transition-all duration-100"
+                    className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold tracking-wider border rounded-sm font-mono transition-all duration-100"
                     style={
                       isOn
                         ? { color: meta.color, backgroundColor: meta.bg, borderColor: meta.border, boxShadow: `0 0 6px ${meta.border}` }
                         : { color: meta.color, backgroundColor: 'transparent', borderColor: meta.border }
                     }
                   >
-                    <span style={{ fontSize: 8 }}>{meta.symbol}</span>
+                    <span style={{ fontSize: 10 }}>{meta.symbol}</span>
                     {lbl}
                     <span style={{ opacity: 0.6 }}>{count}</span>
                   </button>
                 )
               })}
               {subFilters.size > 0 && (
-                <button onClick={clearFilters} className="px-1.5 py-0.5 text-[9px] font-mono border rounded-sm"
+                <button onClick={clearFilters} className="px-1.5 py-0.5 text-[11px] font-mono border rounded-sm"
                   style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>✕</button>
               )}
             </>
           ) : (
-            <span className="text-[9px] font-mono" style={{ color: 'var(--text-dim)' }}>
+            <span className="text-[11px] font-mono" style={{ color: 'var(--text-dim)' }}>
               {subfeeds[0] ?? '—'}
             </span>
           )}
@@ -120,7 +120,7 @@ export default function Column({ source, items, subFilters, subCounts, readIds, 
         {initialLoaded && visible.length === 0 && !loading && (
           <div className="flex flex-col items-center justify-center py-20 gap-2 font-mono" style={{ color: 'var(--text-dim)' }}>
             <span className="text-3xl" style={{ color: bg }}>◈</span>
-            <span className="text-[10px] tracking-widest">NO ARTICLES</span>
+            <span className="text-[12px] tracking-widest">NO ARTICLES</span>
           </div>
         )}
         {visible.length > 0 && (

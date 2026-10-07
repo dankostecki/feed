@@ -37,13 +37,13 @@ function Row({ label, value, action, actionLabel, danger = false }: {
       <div className="flex flex-col leading-none gap-0.5">
         <span className="text-[11px] font-mono" style={{ color: 'var(--text-hi)' }}>{label}</span>
         {value !== undefined && (
-          <span className="text-[10px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{value}</span>
+          <span className="text-[12px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{value}</span>
         )}
       </div>
       {action && actionLabel && (
         <button
           onClick={action}
-          className="px-2.5 py-1 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150 shrink-0"
+          className="px-2.5 py-1 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150 shrink-0"
           style={
             danger
               ? { color: '#f87171', borderColor: '#f8717140', backgroundColor: 'transparent' }
@@ -82,12 +82,12 @@ function JevExportRow({ items, hours }: { items: NewsItem[]; hours: number }) {
     }
   }
 
-  const btn = 'px-2.5 py-1 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150 shrink-0 disabled:opacity-40'
+  const btn = 'px-2.5 py-1 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150 shrink-0 disabled:opacity-40'
   return (
     <div className="flex items-center justify-between gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border-dim)' }}>
       <div className="flex flex-col leading-none gap-0.5">
         <span className="text-[11px] font-mono" style={{ color: 'var(--text-hi)' }}>Last {hours}h</span>
-        <span className="text-[10px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{count} headlines</span>
+        <span className="text-[12px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{count} headlines</span>
       </div>
       <div className="flex items-center gap-1.5">
         <button onClick={download} disabled={!count} className={btn} style={BTN_STYLE} title="Download .txt with State and Questions">TXT</button>
@@ -106,7 +106,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="flex flex-col gap-0">
       <span
-        className="text-[9px] font-bold tracking-[0.2em] uppercase mb-1 font-mono"
+        className="text-[11px] font-bold tracking-[0.2em] uppercase mb-1 font-mono"
         style={{ color: 'var(--text-dim)' }}
       >
         {title}
@@ -197,7 +197,7 @@ export default function SettingsDrawer({
               <div className="flex items-center gap-2 py-2.5" style={{ borderBottom: '1px solid var(--border-dim)' }}>
                 {onScrollToTop && (
                   <button onClick={() => { onScrollToTop(); onClose() }}
-                    className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
+                    className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
                     style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
@@ -207,7 +207,7 @@ export default function SettingsDrawer({
                 )}
                 {onSearch && (
                   <button onClick={() => { onSearch(); onClose() }}
-                    className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
+                    className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
                     style={{ color: 'var(--text-ui)', borderColor: 'var(--border)' }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
@@ -218,7 +218,7 @@ export default function SettingsDrawer({
                 {onRefresh && (
                   <button onClick={() => { onRefresh(); onClose() }}
                     disabled={loading}
-                    className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
+                    className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
                     style={{ color: loading ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)' }}>
                     <svg width="13" height="13" className={loading ? 'animate-spin' : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 12a9 9 0 11-6.219-8.56" />
@@ -238,7 +238,7 @@ export default function SettingsDrawer({
                 <div className="flex items-center rounded-sm overflow-hidden" style={{ border: '1px solid var(--border)' }}>
                   {(['GRID', 'COLUMNS'] as const).map((v) => (
                     <button key={v} onClick={() => { onViewModeChange(v); onClose() }}
-                      className="px-3 py-1.5 text-[10px] font-bold tracking-widest font-mono transition-all duration-150"
+                      className="px-3 py-1.5 text-[12px] font-bold tracking-widest font-mono transition-all duration-150"
                       style={viewMode === v
                         ? { color: 'var(--text-hi)', backgroundColor: theme === 'dark' ? '#0d1e35' : '#d8e8f4' }
                         : { color: 'var(--text-ui)', backgroundColor: 'transparent' }
@@ -250,10 +250,10 @@ export default function SettingsDrawer({
                 <div className="flex items-center justify-between gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border-dim)' }}>
                   <div className="flex flex-col leading-none gap-0.5">
                     <span className="text-[11px] font-mono" style={{ color: 'var(--text-hi)' }}>Bookmarks</span>
-                    <span className="text-[10px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{bookmarkCount} saved</span>
+                    <span className="text-[12px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{bookmarkCount} saved</span>
                   </div>
                   <button onClick={onShowSaved}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150"
                     style={{ color: '#f59e0b', borderColor: '#f59e0b40' }}>
                     ★ SAVED
                   </button>
@@ -267,7 +267,7 @@ export default function SettingsDrawer({
               <JevExportRow items={items} hours={4} />
               <JevExportRow items={items} hours={8} />
               <JevExportRow items={items} hours={24} />
-              <p className="text-[10px] font-mono leading-relaxed pt-2" style={{ color: 'var(--text-ui)' }}>
+              <p className="text-[12px] font-mono leading-relaxed pt-2" style={{ color: 'var(--text-ui)' }}>
                 console.typesafe.ai/playground: STATE → State field, QUESTIONS → Questions field. Higher probability = more important.
               </p>
             </Section>
@@ -357,8 +357,8 @@ export default function SettingsDrawer({
                 ['Network', 'Vercel serverless API'],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-start justify-between gap-2">
-                  <span className="text-[10px]" style={{ color: 'var(--text-ui)' }}>{k}</span>
-                  <span className="text-[10px] text-right" style={{ color: 'var(--text-md)' }}>{v}</span>
+                  <span className="text-[12px]" style={{ color: 'var(--text-ui)' }}>{k}</span>
+                  <span className="text-[12px] text-right" style={{ color: 'var(--text-md)' }}>{v}</span>
                 </div>
               ))}
             </div>
@@ -370,7 +370,7 @@ export default function SettingsDrawer({
           className="px-4 py-3 flex-shrink-0"
           style={{ borderTop: '1px solid var(--border)' }}
         >
-          <span className="text-[10px]" style={{ color: 'var(--text-dim)' }}>
+          <span className="text-[12px]" style={{ color: 'var(--text-dim)' }}>
             Data stored locally · No tracking
           </span>
         </div>

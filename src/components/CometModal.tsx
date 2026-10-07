@@ -151,7 +151,7 @@ export default function CometModal({ item, onClose }: Props) {
                       {action.label}
                     </span>
                     <span
-                      className="text-[10px]"
+                      className="text-[12px]"
                       style={{ color: 'var(--text-ui)' }}
                     >
                       {action.desc}
@@ -173,7 +173,7 @@ export default function CometModal({ item, onClose }: Props) {
                   <span className="text-[11px] font-bold tracking-wider" style={{ color: 'var(--src-FED)' }}>
                     {copied ? 'SKOPIOWANO!' : 'PROMPT GOTOWY'}
                   </span>
-                  <span className="text-[10px]" style={{ color: 'var(--text-ui)' }}>
+                  <span className="text-[12px]" style={{ color: 'var(--text-ui)' }}>
                     {selected} — wklej prompt w AI
                   </span>
                 </div>
@@ -208,7 +208,7 @@ export default function CometModal({ item, onClose }: Props) {
               {/* Pick another command */}
               <button
                 onClick={() => setSelected(null)}
-                className="text-[10px] font-mono tracking-widest py-2 transition-colors"
+                className="text-[12px] font-mono tracking-widest py-2 transition-colors"
                 style={{ color: 'var(--text-ui)' }}
               >
                 ← INNY PROMPT
