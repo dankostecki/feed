@@ -10,7 +10,7 @@ export interface NewsItem {
   feedLabel: string
 }
 
-interface FeedConfig {
+export interface FeedConfig {
   source: Source
   label: string
 }
@@ -29,11 +29,11 @@ function getElText(parent: Element, selector: string): string {
   return parent.querySelector(selector)?.textContent?.trim() || ''
 }
 
-function makeId(config: FeedConfig, key: string): string {
+export function makeId(config: FeedConfig, key: string): string {
   return `${config.source}::${config.label}::${key}`
 }
 
-function suffixTitle(title: string, config: FeedConfig): string {
+export function suffixTitle(title: string, config: FeedConfig): string {
   if (config.source === 'BLOOMBERG' && !title.endsWith(' - Bloomberg')) return `${title} - Bloomberg`
   return title
 }
@@ -113,6 +113,32 @@ export async function fetchAllFeeds(): Promise<{
     }
   }
 
+  const deduped = finalizeItems(allItems)
+  return { items: deduped, errors: data.errors }
+}
+
+export function relativeTime(date: Date): string {
+  if (date.getTime() === 0) return 'n/a'
+  const diff = Date.now() - date.getTime()
+  const s = Math.floor(diff / 1000)
+  const m = Math.floor(s / 60)
+  const h = Math.floor(m / 60)
+  const d = Math.floor(h / 24)
+  if (s < 60) return `${s}s`
+  if (m < 60) return `${m}m`
+  if (h < 24) return `${h}h`
+  if (d < 30) return `${d}d`
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+export function absoluteTime(date: Date): string {
+  if (date.getTime() === 0) return '—'
+  return date.toISOString().replace('T', ' ').slice(0, 16) + ' UTC'
+}
+
+// Dedupe (same id, or same source + link across sub-feeds) and sort newest first.
+// Shared by the browser feed and the server (/api/jev) so both see the same list.
+export function finalizeItems(allItems: NewsItem[]): NewsItem[] {
   const seen = new Set<string>()
   const unique = allItems.filter((item) => {
     if (seen.has(item.id)) return false
@@ -138,25 +164,5 @@ export async function fetchAllFeeds(): Promise<{
     if (tb === 0) return -1
     return tb - ta
   })
-
-  return { items: deduped, errors: data.errors }
-}
-
-export function relativeTime(date: Date): string {
-  if (date.getTime() === 0) return 'n/a'
-  const diff = Date.now() - date.getTime()
-  const s = Math.floor(diff / 1000)
-  const m = Math.floor(s / 60)
-  const h = Math.floor(m / 60)
-  const d = Math.floor(h / 24)
-  if (s < 60) return `${s}s`
-  if (m < 60) return `${m}m`
-  if (h < 24) return `${h}h`
-  if (d < 30) return `${d}d`
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-export function absoluteTime(date: Date): string {
-  if (date.getTime() === 0) return '—'
-  return date.toISOString().replace('T', ' ').slice(0, 16) + ' UTC'
+  return deduped
 }

@@ -29,6 +29,7 @@ interface Props {
   sourceOrder?: Source[]
   onSourceOrderChange?: (order: Source[]) => void
   items?: NewsItem[]
+  onJevRank?: (hours: number) => void
   voiceOn?: boolean
   onVoiceToggle?: () => void
   voiceSettings?: VoiceSettings
@@ -71,8 +72,7 @@ function Row({ label, value, action, actionLabel, danger = false }: {
 
 const BTN_STYLE = { color: 'var(--text-ui)', borderColor: 'var(--border)' }
 
-function JevExportRow({ items, hours }: { items: NewsItem[]; hours: number }) {
-  const [copied, setCopied] = useState<string | null>(null)
+function JevExportRow({ items, hours, onRank }: { items: NewsItem[]; hours: number; onRank?: (hours: number) => void }) {
   const count = itemsInWindow(items, hours).length
 
   function download() {
@@ -84,31 +84,22 @@ function JevExportRow({ items, hours }: { items: NewsItem[]; hours: number }) {
     setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
-  async function copy(part: 'state' | 'questions') {
-    const exp = buildJevExport(items, hours)
-    try {
-      await navigator.clipboard.writeText(exp[part])
-      setCopied(part); setTimeout(() => setCopied(null), 1500)
-    } catch {
-      download()
-    }
-  }
-
-  const btn = 'px-2.5 py-1 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150 shrink-0 disabled:opacity-40'
+  const btn = 'px-2.5 py-1.5 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150 shrink-0 disabled:opacity-40'
   return (
     <div className="flex items-center justify-between gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border-dim)' }}>
-      <div className="flex flex-col leading-none gap-0.5">
-        <span className="text-[11px] font-mono" style={{ color: 'var(--text-hi)' }}>Last {hours}h</span>
+      <div className="flex flex-col leading-none gap-1">
+        <span className="text-[12px] font-mono" style={{ color: 'var(--text-hi)' }}>Last {hours}h</span>
         <span className="text-[12px] font-mono tabular-nums" style={{ color: 'var(--text-ui)' }}>{count} headlines</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <button onClick={download} disabled={!count} className={btn} style={BTN_STYLE} title="Download .txt with State and Questions">TXT</button>
-        <button onClick={() => copy('state')} disabled={!count} className={btn} style={BTN_STYLE} title="Copy the State field">
-          {copied === 'state' ? 'COPIED' : 'STATE'}
-        </button>
-        <button onClick={() => copy('questions')} disabled={!count} className={btn} style={BTN_STYLE} title="Copy the Questions JSON">
-          {copied === 'questions' ? 'COPIED' : 'QUESTIONS'}
-        </button>
+        <button onClick={download} disabled={!count} className={btn} style={BTN_STYLE} title="Download .txt for the Jev playground">TXT</button>
+        {onRank && (
+          <button onClick={() => onRank(hours)} disabled={!count} className={btn}
+            style={{ color: '#f59e0b', borderColor: '#f59e0b80', backgroundColor: '#f59e0b14' }}
+            title={`Rank the headlines of the last ${hours}h with Jev and show the most important`}>
+            TOP {hours}H ▶
+          </button>
+        )}
       </div>
     </div>
   )
@@ -274,7 +265,7 @@ export default function SettingsDrawer({
   onThemeToggle, onAutoRefreshToggle,
   viewMode, onViewModeChange, onShowSaved,
   onScrollToTop, onSearch, onRefresh, loading,
-  sourceOrder, onSourceOrderChange, items,
+  sourceOrder, onSourceOrderChange, items, onJevRank,
   voiceOn, onVoiceToggle, voiceSettings, onVoiceSettingsChange, voices = [],
   notifySettings, notifyPerm = 'unsupported', onNotifyToggle, onNotifySettingsChange, onNotifyTest,
 }: Props) {
@@ -345,12 +336,12 @@ export default function SettingsDrawer({
 
           {/* Jev export first: used on every visit */}
           {items && (
-            <Section title="Export for Jev">
-              <JevExportRow items={items} hours={4} />
-              <JevExportRow items={items} hours={8} />
-              <JevExportRow items={items} hours={24} />
+            <Section title="Jev · top news">
+              <JevExportRow items={items} hours={4} onRank={onJevRank} />
+              <JevExportRow items={items} hours={8} onRank={onJevRank} />
+              <JevExportRow items={items} hours={24} onRank={onJevRank} />
               <p className="text-[12px] font-mono leading-relaxed pt-2" style={{ color: 'var(--text-ui)' }}>
-                console.typesafe.ai/playground: STATE → State field, QUESTIONS → Questions field. Higher probability = more important.
+                TOP: Jev ranks the headlines by market importance (one API call, reused for 5 min). TXT: file for the playground.
               </p>
             </Section>
           )}
