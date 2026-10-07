@@ -14,9 +14,10 @@ interface Props {
   fresh?: boolean                    // arrived on a recent refresh: show NEW
   sweep?: boolean                    // play the arrival highlight (once)
   onSwept?: (id: string) => void     // highlight finished
+  onSeen?: (id: string) => void      // pointer went over the card: drop NEW
 }
 
-export default function NewsCard({ item, read, bookmarked, onRead, onBookmark, fresh = false, sweep = false, onSwept }: Props) {
+export default function NewsCard({ item, read, bookmarked, onRead, onBookmark, fresh = false, sweep = false, onSwept, onSeen }: Props) {
   const meta = getFeedMeta(item.source, item.feedLabel)
   const rel  = relativeTime(item.pubDate)
   const abs  = absoluteTime(item.pubDate)
@@ -64,7 +65,7 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark, f
         border: '1px solid var(--border)',
         borderLeft: `3px solid ${read ? 'var(--border-dim)' : meta.color}`,
       }}
-      onMouseEnter={(e) => { if (!read) e.currentTarget.style.backgroundColor = 'var(--hover)' }}
+      onMouseEnter={(e) => { if (!read) e.currentTarget.style.backgroundColor = 'var(--hover)'; if (fresh) onSeen?.(item.id) }}
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = read ? 'var(--bg)' : 'var(--surface)' }}
     >
       {sweep && <span aria-hidden className="fresh-sheen" />}

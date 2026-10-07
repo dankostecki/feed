@@ -99,6 +99,12 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
     return () => clearInterval(id)
   }, [])
   const markSwept = useCallback((id: string) => setSweptIds((prev) => new Set(prev).add(id)), [])
+  // Hovering a fresh card counts as seen: NEW goes away. A short grace period so a card
+  // that appears right under a resting cursor is not cleared before it is noticed.
+  const markSeen = useCallback((id: string) => setFreshAt((prev) => {
+    if (!(id in prev) || Date.now() - prev[id] < 1000) return prev
+    const next = { ...prev }; delete next[id]; return next
+  }), [])
   // Fallback for a missed animationend: once fresh cards have been on screen for the
   // length of the highlight, treat it as played (so it does not replay on tab switches)
   useEffect(() => {
@@ -562,6 +568,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
                 freshAt={freshAt}
                 sweptIds={sweptIds}
                 onSwept={markSwept}
+                onSeen={markSeen}
               />
             </div>
           ))}
@@ -612,6 +619,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
                     fresh={item.id in freshAt}
                     sweep={item.id in freshAt && !sweptIds.has(item.id)}
                     onSwept={markSwept}
+                    onSeen={markSeen}
                   /></>
                 )
               })}
