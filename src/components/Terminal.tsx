@@ -9,7 +9,7 @@ import DateSeparator, { dayKey } from './DateSeparator'
 import FilterBar, { Filter } from './FilterBar'
 import StatusBar from './StatusBar'
 import SettingsDrawer from './SettingsDrawer'
-import JevTop from './JevTop'
+import TopNews from './TopNews'
 import { NotifySettings, DEFAULT_NOTIFY_SETTINGS, loadNotifySettings, saveNotifySettings, notifySupported, notifyPermission, requestNotifyPermission, notifyHeadlines, testNotification } from '@/lib/notify'
 import { ALL_SOURCES } from '@/lib/speech'
 import { VoiceSettings, DEFAULT_VOICE_SETTINGS, loadVoiceSettings, saveVoiceSettings, speechSupported, newHeadlines, announce, speak, stopSpeaking, voicesFor } from '@/lib/speech'
@@ -72,7 +72,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
   const [searchOpen,     setSearchOpen]    = useState(false)
   const [headerVisible,  setHeaderVisible] = useState(true)
   const [headerHeight,   setHeaderHeight]  = useState(0)
-  const [jevHours,       setJevHours]      = useState<number | null>(null) // TOP NEWS view (Jev ranking) when set
+  const [topHours,       setTopHours]      = useState<number | null>(null) // TOP NEWS view when set
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const searchRef    = useRef<HTMLInputElement>(null)
   const lastScrollY  = useRef(0)
@@ -240,9 +240,9 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
     setTheme((t) => { const n = t === 'dark' ? 'light' : 'dark'; try { localStorage.setItem(THEME_KEY, n) } catch {}; return n })
   }
 
-  function handleSourceChange(s: Filter) { setJevHours(null); setSourceFilter(s); setSubFilters(new Set()); scrollToTop() }
-  function openJev(h: number) { setJevHours(h); setSettingsOpen(false); scrollToTop() }
-  const closeJev = useCallback(() => { setJevHours(null); window.scrollTo({ top: 0, behavior: 'instant' }) }, [])
+  function handleSourceChange(s: Filter) { setTopHours(null); setSourceFilter(s); setSubFilters(new Set()); scrollToTop() }
+  function openTop(h: number) { setTopHours(h); setSettingsOpen(false); scrollToTop() }
+  const closeTop = useCallback(() => { setTopHours(null); window.scrollTo({ top: 0, behavior: 'instant' }) }, [])
   function handleSubFilterToggle(label: string) {
     setSubFilters((p) => { const n = new Set(p); n.has(label) ? n.delete(label) : n.add(label); return n })
   }
@@ -451,7 +451,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
         sourceOrder={sourceOrder}
         onSourceOrderChange={changeSourceOrder}
         items={items}
-        onJevRank={openJev}
+        onTopNews={openTop}
         voiceOn={voiceOn}
         onVoiceToggle={toggleVoice}
         voiceSettings={voiceSettings}
@@ -550,16 +550,16 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
       {/* Spacer for fixed header in GRID view */}
       {!isColumns && <div style={{ height: headerHeight }} />}
 
-      {/* ── TOP NEWS (Jev) in COLUMNS mode ── */}
-      {isColumns && jevHours != null && (
+      {/* ── TOP NEWS in COLUMNS mode ── */}
+      {isColumns && topHours != null && (
         <div className="flex-1 overflow-y-auto p-2 sm:p-3 lg:p-4 min-h-0">
-          <JevTop hours={jevHours} onHours={setJevHours} onBack={closeJev}
+          <TopNews hours={topHours} onHours={setTopHours} onBack={closeTop}
             readIds={readIds} bookmarkIds={bookmarkIds} onRead={markAsRead} onBookmark={toggleBookmark} />
         </div>
       )}
 
       {/* ── COLUMN VIEW ── */}
-      {isColumns && jevHours == null && (
+      {isColumns && topHours == null && (
         <div className="flex flex-1 overflow-x-auto overflow-y-hidden min-h-0 columns-scroll">
           {sourceOrder.map((src) => (
             /* Mobile: show only active column. Desktop: equal flex columns */
@@ -588,16 +588,16 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
         </div>
       )}
 
-      {/* ── TOP NEWS (Jev) in GRID mode ── */}
-      {!isColumns && jevHours != null && (
+      {/* ── TOP NEWS in GRID mode ── */}
+      {!isColumns && topHours != null && (
         <main className="flex-1 p-2 sm:p-3 lg:p-4 pb-24 mx-auto w-full max-w-[2400px]">
-          <JevTop hours={jevHours} onHours={setJevHours} onBack={closeJev}
+          <TopNews hours={topHours} onHours={setTopHours} onBack={closeTop}
             readIds={readIds} bookmarkIds={bookmarkIds} onRead={markAsRead} onBookmark={toggleBookmark} />
         </main>
       )}
 
       {/* ── GRID VIEW ── */}
-      {!isColumns && jevHours == null && (
+      {!isColumns && topHours == null && (
         <main className="flex-1 p-2 sm:p-3 lg:p-4 pb-24 mx-auto w-full max-w-[2400px]">
           {!initialLoaded && loading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6 gap-2 lg:gap-3">

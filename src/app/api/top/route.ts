@@ -8,19 +8,20 @@ export const maxDuration = 60
 
 const WINDOWS = [4, 8, 24]
 const TOP = 15
-const CACHE_S = 300 // a ranking is reused for 5 min: repeated clicks or other visitors do not cost Jev calls
+const CACHE_S = 300 // a ranking is reused for 5 min: repeated clicks or other visitors do not trigger new upstream calls
 
-interface Ranking { hours: number; generatedAt: string; count: number; model: string; top: RankedHeadline[] }
+interface Ranking { hours: number; generatedAt: string; count: number; top: RankedHeadline[] }
 const memo = new Map<number, { at: number; data: Ranking }>()
 
-// GET /api/jev?hours=4|8|24 → top headlines of that window ranked by Jev.
+// GET /api/top?hours=4|8|24 → top headlines of that window, ranked server-side (TypeSafe Jev).
 // The server builds the request from its own RSS fetch, so callers cannot make it
-// spend Jev credits on arbitrary text; only ?hours is accepted (no cache-busting params).
+// spend credits on arbitrary text; only ?hours is accepted (no cache-busting params).
+// Public responses never name the upstream service; details go to the server log only.
 export async function GET(req: Request) {
   const params = new URL(req.url).searchParams
   const hours = Number(params.get('hours'))
   if (!WINDOWS.includes(hours) || [...params.keys()].some((k) => k !== 'hours')) {
-    return NextResponse.json({ error: 'bad_request', message: 'Use ?hours=4, 8 or 24' }, { status: 400, headers: { 'Cache-Control': 'no-store' } })
+    return NextResponse.json({ error: 'bad_request' }, { status: 400, headers: { 'Cache-Control': 'no-store' } })
   }
 
   const hit = memo.get(hours)
@@ -31,17 +32,18 @@ export async function GET(req: Request) {
     const jevReq = buildJevRequest(await loadAllItems(), hours, now)
     let data: Ranking
     if (jevReq.count === 0) {
-      data = { hours, generatedAt: now.toISOString(), count: 0, model: '', top: [] }
+      data = { hours, generatedAt: now.toISOString(), count: 0, top: [] }
     } else {
-      const { model, ranked } = await rankWithJev(jevReq)
-      data = { hours, generatedAt: now.toISOString(), count: jevReq.count, model, top: ranked.slice(0, TOP) }
+      const { ranked } = await rankWithJev(jevReq)
+      data = { hours, generatedAt: now.toISOString(), count: jevReq.count, top: ranked.slice(0, TOP) }
     }
     memo.set(hours, { at: Date.now(), data })
     return ok(data, CACHE_S)
   } catch (e) {
     const err = e instanceof JevError ? e : new JevError('upstream', e instanceof Error ? e.message : 'Unknown error')
-    console.error('jev ranking failed:', err.code, err.message)
-    return NextResponse.json({ error: err.code, message: err.message }, { status: err.status, headers: { 'Cache-Control': 'no-store' } })
+    console.error('top news ranking failed:', err.code, err.message)
+    const code = err.code === 'rate_limited' ? 'busy' : 'unavailable'
+    return NextResponse.json({ error: code }, { status: err.code === 'rate_limited' ? 429 : 503, headers: { 'Cache-Control': 'no-store' } })
   }
 }
 
