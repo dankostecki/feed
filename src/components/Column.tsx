@@ -18,6 +18,9 @@ interface Props {
   onRead: (id: string) => void
   onBookmark: (id: string) => void
   onSubFilterToggle: (label: string) => void
+  freshAt?: Record<string, number>
+  sweptIds?: Set<string>
+  onSwept?: (id: string) => void
 }
 
 const SOURCE_FULL: Record<string, string> = {
@@ -30,7 +33,7 @@ const SOURCE_FULL: Record<string, string> = {
   AXIOS: 'Axios Media',
 }
 
-export default function Column({ source, items, subFilters, subCounts, readIds, bookmarkIds, loading, initialLoaded, searchQuery, onRead, onBookmark, onSubFilterToggle }: Props) {
+export default function Column({ source, items, subFilters, subCounts, readIds, bookmarkIds, loading, initialLoaded, searchQuery, onRead, onBookmark, onSubFilterToggle, freshAt, sweptIds, onSwept }: Props) {
   const color    = SOURCE_COLOR[source]   // CSS var
   const bg       = SOURCE_BG[source]
   const bd       = SOURCE_BD[source]
@@ -134,7 +137,10 @@ export default function Column({ source, items, subFilters, subCounts, readIds, 
                   {showSep && <DateSeparator date={item.pubDate} />}
                   <NewsCard item={item}
                     read={readIds.has(item.id)} bookmarked={bookmarkIds.has(item.id)}
-                    onRead={onRead} onBookmark={onBookmark} />
+                    onRead={onRead} onBookmark={onBookmark}
+                    fresh={!!freshAt && item.id in freshAt}
+                    sweep={!!freshAt && item.id in freshAt && !sweptIds?.has(item.id)}
+                    onSwept={onSwept} />
                 </div>
               )
             })}

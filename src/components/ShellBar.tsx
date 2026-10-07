@@ -10,6 +10,7 @@ interface Props {
   live: boolean     // Hyperliquid data fresh (last fetch < 30s)
   weekend: boolean
   borderColor: string
+  newsCount?: number // new headlines not seen yet (shown on the NEWS tab)
 }
 
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
@@ -30,8 +31,8 @@ function Clock() {
 
 // App-wide top bar: title, MARKET / NEWS tabs, live status and UTC clock.
 // Plain hex colours (no Tailwind colour utilities) so html2canvas renders it in screenshots.
-export default function ShellBar({ tab, onTab, live, weekend, borderColor }: Props) {
-  const tabBtn = (t: Tab, label: string) => {
+export default function ShellBar({ tab, onTab, live, weekend, borderColor, newsCount = 0 }: Props) {
+  const tabBtn = (t: Tab, label: string, count = 0) => {
     const active = tab === t
     return (
       <button key={t} role="tab" aria-selected={active} onClick={() => onTab(t)}
@@ -40,6 +41,11 @@ export default function ShellBar({ tab, onTab, live, weekend, borderColor }: Pro
           ? { color: '#ff9900', borderColor: 'rgba(255,153,0,0.55)', backgroundColor: 'rgba(255,153,0,0.10)' }
           : { color: '#888888', borderColor: '#333333', backgroundColor: 'transparent' }}>
         {label}
+        {count > 0 && (
+          <span className="ml-1.5 tabular-nums" style={{ color: '#ff9900' }} title={`${count} new headline${count > 1 ? 's' : ''}`}>
+            ●{count > 99 ? '99+' : count}
+          </span>
+        )}
       </button>
     )
   }
@@ -54,7 +60,7 @@ export default function ShellBar({ tab, onTab, live, weekend, borderColor }: Pro
         </span>
         <div className="flex gap-1.5" role="tablist" data-capture-hide>
           {tabBtn('market', 'MARKET')}
-          {tabBtn('news', 'NEWS')}
+          {tabBtn('news', 'NEWS', newsCount)}
         </div>
       </div>
       <div className="flex items-center gap-2 sm:gap-3.5 text-[12px] shrink-0">

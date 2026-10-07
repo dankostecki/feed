@@ -10,6 +10,7 @@ import FilterBar, { Filter } from './FilterBar'
 import StatusBar from './StatusBar'
 import SettingsDrawer from './SettingsDrawer'
 import { NotifySettings, DEFAULT_NOTIFY_SETTINGS, loadNotifySettings, saveNotifySettings, notifySupported, notifyPermission, requestNotifyPermission, notifyHeadlines, testNotification } from '@/lib/notify'
+import { ALL_SOURCES } from '@/lib/speech'
 import { VoiceSettings, DEFAULT_VOICE_SETTINGS, loadVoiceSettings, saveVoiceSettings, speechSupported, newHeadlines, announce, speak, stopSpeaking, voicesFor } from '@/lib/speech'
 
 const READ_KEY     = 'cbt:read-articles'
@@ -20,6 +21,7 @@ const ORDER_KEY    = 'cbt:source-order'
 
 type ViewMode = 'GRID' | 'COLUMNS'
 type Theme    = 'dark'  | 'light'
+const FRESH_MS = 10 * 60_000 // how long a new headline keeps its NEW badge
 const DEFAULT_SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG', 'STOOQ', 'AXIOS']
 
 // ── Control button ────────────────────────────────────────────────────────
@@ -45,9 +47,10 @@ function Btn({ onClick, disabled = false, active = false, accentColor = 'var(--t
 interface TerminalProps {
   active?: boolean          // false: kept running in the background but hidden (MARKET tab shown)
   topBar?: React.ReactNode  // app bar with the MARKET / NEWS tabs, rendered as the first header strip
+  onFresh?: (count: number) => void // new headlines arrived on a refresh
 }
 
-export default function Terminal({ active = true, topBar }: TerminalProps = {}) {
+export default function Terminal({ active = true, topBar, onFresh }: TerminalProps = {}) {
   const [items,          setItems]         = useState<NewsItem[]>([])
   const [viewMode,       setViewMode]      = useState<ViewMode>('GRID')
   const [theme,          setTheme]         = useState<Theme>('dark')
@@ -74,6 +77,37 @@ export default function Terminal({ active = true, topBar }: TerminalProps = {}) 
   const feedRef      = useRef<HTMLDivElement>(null)
   const headerRef    = useRef<HTMLElement>(null)
   const activeRef    = useRef(active)
+  const onFreshRef   = useRef(onFresh)
+  useEffect(() => { onFreshRef.current = onFresh }, [onFresh])
+
+  // ── Fresh headlines: NEW badge for 10 min (or until read), one highlight when first seen ──
+  const [freshAt,  setFreshAt]  = useState<Record<string, number>>({})
+  const [sweptIds, setSweptIds] = useState<Set<string>>(new Set())
+  const [pageVisible, setPageVisible] = useState(true)
+  useEffect(() => {
+    const update = () => setPageVisible(document.visibilityState === 'visible')
+    update()
+    document.addEventListener('visibilitychange', update)
+    return () => document.removeEventListener('visibilitychange', update)
+  }, [])
+  useEffect(() => {
+    const id = setInterval(() => setFreshAt((prev) => {
+      const cutoff = Date.now() - FRESH_MS
+      const next = Object.fromEntries(Object.entries(prev).filter(([, t]) => t > cutoff))
+      return Object.keys(next).length === Object.keys(prev).length ? prev : next
+    }), 30_000)
+    return () => clearInterval(id)
+  }, [])
+  const markSwept = useCallback((id: string) => setSweptIds((prev) => new Set(prev).add(id)), [])
+  // Fallback for a missed animationend: once fresh cards have been on screen for the
+  // length of the highlight, treat it as played (so it does not replay on tab switches)
+  useEffect(() => {
+    if (!active || !pageVisible) return
+    const pending = Object.keys(freshAt).filter((id) => !sweptIds.has(id))
+    if (!pending.length) return
+    const t = setTimeout(() => setSweptIds((prev) => { const n = new Set(prev); pending.forEach((id) => n.add(id)); return n }), 3200)
+    return () => clearTimeout(t)
+  }, [active, pageVisible, freshAt, sweptIds])
   useEffect(() => { activeRef.current = active; if (active) { lastScrollY.current = 0; setHeaderVisible(true) } }, [active])
 
   // ── Voice (text-to-speech for new headlines) ──
@@ -172,6 +206,14 @@ export default function Terminal({ active = true, topBar }: TerminalProps = {}) 
       }
       const n = notifyRef.current
       if (seen && n.enabled) notifyHeadlines(newHeadlines(fetched, seen, n.sources))
+      if (seen) {
+        const fresh = newHeadlines(fetched, seen, ALL_SOURCES)
+        if (fresh.length) {
+          const now = Date.now()
+          setFreshAt((prev) => ({ ...prev, ...Object.fromEntries(fresh.map((i) => [i.id, now])) }))
+          onFreshRef.current?.(fresh.length)
+        }
+      }
       seenIds.current = new Set([...(seen ?? []), ...fetched.map((i) => i.id)])
     } catch (e) {
       setErrors([{ feed: 'ALL', message: e instanceof Error ? e.message : 'Unknown' }])
@@ -363,7 +405,7 @@ export default function Terminal({ active = true, topBar }: TerminalProps = {}) 
   return (
     <div
       data-theme={theme}
-      className="font-mono flex flex-col"
+      className={`font-mono flex flex-col ${pageVisible ? '' : 'fresh-paused'}`}
       style={{
         backgroundColor: 'var(--bg)', color: 'var(--text-hi)',
         height: isColumns ? '100dvh' : undefined,
@@ -517,6 +559,9 @@ export default function Terminal({ active = true, topBar }: TerminalProps = {}) 
                 onBookmark={toggleBookmark}
                 onSubFilterToggle={(lbl) => toggleColSubFilter(src, lbl)}
                 searchQuery={q}
+                freshAt={freshAt}
+                sweptIds={sweptIds}
+                onSwept={markSwept}
               />
             </div>
           ))}
@@ -564,6 +609,9 @@ export default function Terminal({ active = true, topBar }: TerminalProps = {}) 
                     bookmarked={bookmarkIds.has(item.id)}
                     onRead={markAsRead}
                     onBookmark={toggleBookmark}
+                    fresh={item.id in freshAt}
+                    sweep={item.id in freshAt && !sweptIds.has(item.id)}
+                    onSwept={markSwept}
                   /></>
                 )
               })}

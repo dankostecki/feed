@@ -320,3 +320,32 @@ input::placeholder { color: var(--text-dim); }
 [data-capturing] [data-capture-hide] { display: none !important; }
 [data-capturing] [data-capture-show] { display: inline !important; }
 [data-capturing] [data-capture-wrap] { flex-wrap: wrap !important; row-gap: 6px; }
+
+/* ── Fresh headline (arrived on a refresh) ──────────────────────────────────
+   One sheen sweep + a short glow in the source colour (--fresh-color), played
+   once while the page is actually visible; paused while the tab is hidden. */
+.news-fresh { animation: fresh-glow 2.8s ease-out 1; }
+.news-fresh .fresh-sheen {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1;
+}
+.news-fresh .fresh-sheen::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 55%;
+  background: linear-gradient(105deg,
+    transparent 15%,
+    color-mix(in srgb, var(--fresh-color) 30%, transparent) 40%,
+    color-mix(in srgb, var(--fresh-color) 45%, rgba(255,255,255,.35)) 50%,
+    color-mix(in srgb, var(--fresh-color) 30%, transparent) 60%,
+    transparent 85%);
+  transform: translateX(-110%);
+  animation: fresh-sweep 1.4s ease-in-out .2s 1 forwards;
+}
+.fresh-paused .news-fresh, .fresh-paused .news-fresh .fresh-sheen::after { animation-play-state: paused; }
+[data-theme="light"] .news-fresh .fresh-sheen::after { opacity: .45; }
+@keyframes fresh-sweep { to { transform: translateX(290%); } }
+@keyframes fresh-glow {
+  0%   { box-shadow: 0 0 0 1px var(--fresh-color), 0 0 22px -4px var(--fresh-color); }
+  100% { box-shadow: 0 0 0 1px transparent, 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .news-fresh .fresh-sheen { display: none; }
+}
