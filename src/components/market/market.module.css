@@ -1,0 +1,165 @@
+/* MARKET tab — same look as the original Hyperliquid TradFi terminal */
+.page {
+  --m-bg: #0a0a0a;
+  --m-fg: #c8c8c8;
+  --m-green: #00ff88;
+  --m-red: #ff4444;
+  --m-amber: #ff9900;
+  --m-dim: #888888;
+  --m-border: #222;
+  background: var(--m-bg);
+  color: var(--m-fg);
+  font-family: 'Share Tech Mono', 'Consolas', monospace;
+  font-size: 14px;
+  line-height: normal; /* as in the original page (Tailwind sets 1.5) */
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+  border: 1px solid var(--m-border);
+  background: var(--m-bg);
+}
+
+.flash { animation: flash 0.3s ease-out; }
+@keyframes flash { 0% { filter: brightness(2); } 100% { filter: brightness(1); } }
+
+.tableWrapper { overflow-x: auto; }
+
+.table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.table th {
+  text-align: right;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--m-border);
+  color: var(--m-dim);
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.table th:first-child, .table td:first-child { text-align: left; }
+.table td {
+  text-align: right;
+  padding: 6px 12px;
+  border-bottom: 1px solid #151515;
+  white-space: nowrap;
+}
+.catRow td {
+  color: var(--m-amber);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding-top: 12px;
+  border-bottom: none;
+}
+.dataRow { cursor: pointer; }
+.dataRow:hover { background: #111; }
+.dataRow:active { background: #1a1a1a; }
+.dataRow:focus-visible { outline: 1px solid var(--m-amber); outline-offset: -1px; }
+.name { color: var(--m-fg); font-weight: 600; }
+.positive { color: var(--m-green); }
+.negative { color: var(--m-red); }
+.neutral { color: var(--m-dim); }
+.na { color: #444; }
+
+.footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--m-border);
+  font-size: 11px;
+  color: var(--m-dim);
+}
+.footerNote { color: #444; }
+
+.screenshotBtn {
+  background: none;
+  border: 1px solid var(--m-amber);
+  color: var(--m-amber);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 14px;
+  margin-top: 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: background 0.15s;
+}
+.screenshotBtn:hover { background: #1a1200; }
+
+/* Chart bottom sheet */
+.backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 100; }
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70vh;
+  background: #0d0d0d;
+  border-top: 2px solid var(--m-amber);
+  z-index: 101;
+  transform: translateY(100%);
+  transition: transform 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px 12px 0 0;
+  font-family: 'Share Tech Mono', 'Consolas', monospace;
+  color: var(--m-fg);
+}
+.sheetOpen { transform: translateY(0); }
+.handle { width: 40px; height: 4px; background: #444; border-radius: 2px; margin: 8px auto 4px; flex-shrink: 0; }
+.chartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px 8px;
+  flex-shrink: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chartInfo { display: flex; align-items: baseline; gap: 10px; }
+.chartSymbol { color: var(--m-amber); font-weight: 600; font-size: 16px; letter-spacing: 1px; }
+.chartPrice { color: var(--m-fg); font-size: 14px; }
+.intervals { display: flex; gap: 4px; }
+.intervals button {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: var(--m-dim);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 36px;
+  transition: all 0.15s;
+}
+.intervals button:global(.active) { background: var(--m-amber); color: #000; border-color: var(--m-amber); font-weight: 600; }
+.intervals button:not(:global(.active)):hover { border-color: var(--m-amber); color: var(--m-fg); }
+.close { background: none; border: none; color: var(--m-dim); font-size: 24px; cursor: pointer; padding: 0 4px; line-height: 1; }
+.close:hover { color: var(--m-fg); }
+.chartBox { flex: 1; min-height: 0; position: relative; }
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--m-dim);
+  font-size: 13px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .page { padding: 8px; }
+  .table { font-size: 14px; }
+  .table th, .table td { padding: 6px 8px; }
+  .sheet { height: 75vh; }
+  .intervals button { padding: 6px 8px; font-size: 11px; min-width: 32px; }
+}
+@media (min-width: 900px) {
+  .sheet { height: 60vh; max-width: 900px; left: 50%; right: auto; width: 100%; transform: translateX(-50%) translateY(100%); }
+  .sheetOpen { transform: translateX(-50%) translateY(0); }
+}

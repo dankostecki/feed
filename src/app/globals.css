@@ -315,3 +315,8 @@ input::placeholder { color: var(--text-dim); }
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Screenshot (html2canvas clone): full labels, no tab buttons */
+[data-capturing] [data-capture-hide] { display: none !important; }
+[data-capturing] [data-capture-show] { display: inline !important; }
+[data-capturing] [data-capture-wrap] { flex-wrap: wrap !important; row-gap: 6px; }
