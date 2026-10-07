@@ -97,10 +97,17 @@ export function newHeadlines(fetched: NewsItem[], seen: Set<string>, settings: V
     .sort((a, b) => a.pubDate.getTime() - b.pubDate.getTime()) // oldest first, in the order they arrived
 }
 
+// Stooq headlines are read without the source name, the others as "Reuters: …"
+const NO_PREFIX: Source[] = ['STOOQ']
+export function spokenText(it: NewsItem): string {
+  const title = cleanTitle(it.title)
+  return NO_PREFIX.includes(it.source) ? title : `${SPOKEN_NAME[it.source]}: ${title}`
+}
+
 export function announce(fresh: NewsItem[], settings: VoiceSettings, voices: SpeechSynthesisVoice[]) {
   // Over the limit: read the newest ones (still in the order they arrived), sum up the rest
   const head = fresh.slice(-settings.maxPerRefresh)
-  for (const it of head) speak(`${SPOKEN_NAME[it.source]}: ${cleanTitle(it.title)}`, langOf(it.source), settings, voices)
+  for (const it of head) speak(spokenText(it), langOf(it.source), settings, voices)
   const rest = fresh.length - head.length
   if (rest > 0) {
     const pl = voicesFor(voices, 'pl').length > 0
