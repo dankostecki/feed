@@ -120,7 +120,7 @@ function VoiceSection({ on, onToggle, settings, onChange, voices }: {
     set({ sources: settings.sources.includes(src) ? settings.sources.filter((x) => x !== src) : [...settings.sources, src] })
   const test = (lang: Lang) => {
     stopSpeaking()
-    speak(lang === 'pl' ? 'Stooq: Test polskiego głosu. Kurs złotego bez zmian.' : 'Reuters: Testing the English voice. Oil prices are steady.', lang, settings, voices)
+    speak(lang === 'pl' ? 'Test polskiego głosu. Kurs złotego bez zmian.' : 'Reuters: Testing the English voice. Oil prices are steady.', lang, settings, voices)
   }
   const btn = 'px-2.5 py-1.5 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-150 shrink-0'
   const row = 'flex items-center justify-between gap-3 py-2.5'
