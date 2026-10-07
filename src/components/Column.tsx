@@ -21,6 +21,7 @@ interface Props {
   freshAt?: Record<string, number>
   sweptIds?: Set<string>
   onSwept?: (id: string) => void
+  onSeen?: (id: string) => void
 }
 
 const SOURCE_FULL: Record<string, string> = {
@@ -33,7 +34,7 @@ const SOURCE_FULL: Record<string, string> = {
   AXIOS: 'Axios Media',
 }
 
-export default function Column({ source, items, subFilters, subCounts, readIds, bookmarkIds, loading, initialLoaded, searchQuery, onRead, onBookmark, onSubFilterToggle, freshAt, sweptIds, onSwept }: Props) {
+export default function Column({ source, items, subFilters, subCounts, readIds, bookmarkIds, loading, initialLoaded, searchQuery, onRead, onBookmark, onSubFilterToggle, freshAt, sweptIds, onSwept, onSeen }: Props) {
   const color    = SOURCE_COLOR[source]   // CSS var
   const bg       = SOURCE_BG[source]
   const bd       = SOURCE_BD[source]
@@ -140,7 +141,7 @@ export default function Column({ source, items, subFilters, subCounts, readIds, 
                     onRead={onRead} onBookmark={onBookmark}
                     fresh={!!freshAt && item.id in freshAt}
                     sweep={!!freshAt && item.id in freshAt && !sweptIds?.has(item.id)}
-                    onSwept={onSwept} />
+                    onSwept={onSwept} onSeen={onSeen} />
                 </div>
               )
             })}
