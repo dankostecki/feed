@@ -11,9 +11,12 @@ interface Props {
   bookmarked: boolean
   onRead: (id: string) => void
   onBookmark: (id: string) => void
+  fresh?: boolean                    // arrived on a recent refresh: show NEW
+  sweep?: boolean                    // play the arrival highlight (once)
+  onSwept?: (id: string) => void     // highlight finished
 }
 
-export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }: Props) {
+export default function NewsCard({ item, read, bookmarked, onRead, onBookmark, fresh = false, sweep = false, onSwept }: Props) {
   const meta = getFeedMeta(item.source, item.feedLabel)
   const rel  = relativeTime(item.pubDate)
   const abs  = absoluteTime(item.pubDate)
@@ -53,8 +56,10 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
   return (
     <article
       onClick={handleClick}
-      className="group relative flex flex-col cursor-pointer select-none transition-colors duration-150"
+      className={`group relative flex flex-col cursor-pointer select-none transition-colors duration-150 ${sweep ? 'news-fresh' : ''}`}
+      onAnimationEnd={(e) => { if (e.animationName === 'fresh-glow') onSwept?.(item.id) }}
       style={{
+        ['--fresh-color' as string]: meta.color,
         backgroundColor: read ? 'var(--bg)' : 'var(--surface)',
         border: '1px solid var(--border)',
         borderLeft: `3px solid ${read ? 'var(--border-dim)' : meta.color}`,
@@ -62,6 +67,8 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
       onMouseEnter={(e) => { if (!read) e.currentTarget.style.backgroundColor = 'var(--hover)' }}
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = read ? 'var(--bg)' : 'var(--surface)' }}
     >
+      {sweep && <span aria-hidden className="fresh-sheen" />}
+
       {/* Coloured top accent — unread only */}
       {!read && (
         <div style={{ height: 1, background: `linear-gradient(90deg, ${meta.color}50, transparent 65%)` }} />
@@ -120,6 +127,11 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark }:
           style={{ borderTop: '1px solid var(--border-dim)', color: 'var(--text-lo)' }}
         >
           <span className="whitespace-nowrap">{abs}</span>
+          {fresh && !read && (
+            <span className="text-[11px] font-bold tracking-widest px-1.5 rounded-sm border shrink-0 leading-[16px]"
+              style={{ color: meta.color, borderColor: `${meta.color}66`, backgroundColor: `${meta.color}14` }}
+              title="New since the last refresh">NEW</span>
+          )}
           <div className="flex-1" />
           <button
             onClick={handleComet}
