@@ -24,7 +24,7 @@ Hosted on Vercel (Hobby); every merge to `main` deploys to production.
 | `TYPESAFE_API_KEY` | NEWS → Settings → **TOP 4H / 8H / 24H** (ranking by TypeSafe Jev) | Server only. Set in Vercel → Settings → Environment Variables, then redeploy. Never commit it. |
 | `TYPESAFE_API_URL`, `TYPESAFE_MODEL` | optional | Defaults: `https://api.typesafe.ai/v1/systemone`, `jev-latest` |
 
-Without the key everything else works; the TOP view explains how to set it.
+Without the key everything else works (TOP shows "not available").
 `/api/top?hours=4|8|24` ranks only headlines the server fetched itself and reuses a ranking for 5 minutes (memory + CDN cache), so each window costs at most one Jev call per 5 minutes.
 
 ## Layout
@@ -39,3 +39,11 @@ Without the key everything else works; the TOP view explains how to set it.
 | `src/lib/market.ts` | Hyperliquid API, instruments, formatting |
 | `src/components/Terminal.tsx` | NEWS tab |
 | `src/lib/speech.ts`, `src/lib/jevExport.ts` | Read-aloud and Jev export |
+
+## Vercel usage (free Hobby plan)
+
+- RSS feeds are fetched and parsed on the server **at most once a minute** per instance (`getNews()` in `src/lib/rssServer.ts`); `/api/rss` and `/api/top` share that result, so switching 4H / 8H / 24H never refetches.
+- `/api/rss` returns a compact list (id, title, link, source, feed, date, ~150 KB instead of ~1 MB of raw XML) with a 60 s CDN cache (`s-maxage=60`), so refreshes from several tabs / devices within a minute do not run the function.
+- `/api/top` rankings are cached 5 min (memory + CDN).
+- AUTO refresh slows to every 5 min while the browser tab is hidden and neither voice nor notifications are on.
+- Market data (Hyperliquid) is fetched by the browser directly and never touches Vercel.

@@ -24,6 +24,8 @@ const ORDER_KEY    = 'cbt:source-order'
 type ViewMode = 'GRID' | 'COLUMNS'
 type Theme    = 'dark'  | 'light'
 const FRESH_MS = 10 * 60_000 // how long a new headline keeps its NEW badge
+const REFRESH_MS = 60_000            // AUTO refresh
+const HIDDEN_REFRESH_MS = 5 * 60_000 // AUTO refresh while the browser tab is hidden and nothing reads / notifies
 const DEFAULT_SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG', 'STOOQ', 'AXIOS']
 
 // ── Control button ────────────────────────────────────────────────────────
@@ -207,7 +209,9 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
   }, [])
 
   // Feed loader
+  const lastFetchRef = useRef(0)
   const loadFeeds = useCallback(async () => {
+    lastFetchRef.current = Date.now()
     setLoading(true)
     try {
       const { items: fetched, errors: errs } = await fetchAllFeeds()
@@ -235,10 +239,25 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
   }, [])
 
   useEffect(() => { loadFeeds() }, [loadFeeds])
+  // AUTO: every 60s. With the browser tab hidden and neither voice nor notifications on,
+  // nobody needs minute-by-minute updates: refresh every 5 min instead (the "(n)" title
+  // count still updates) and catch up as soon as the tab is visible again.
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
-    if (autoRefresh) intervalRef.current = setInterval(loadFeeds, 60_000)
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+    if (!autoRefresh) return
+    const tick = () => {
+      const background = document.visibilityState !== 'visible' && !voiceRef.current.on && !notifyRef.current.enabled
+      if (!background || Date.now() - lastFetchRef.current >= HIDDEN_REFRESH_MS) loadFeeds()
+    }
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && Date.now() - lastFetchRef.current >= REFRESH_MS) loadFeeds()
+    }
+    intervalRef.current = setInterval(tick, REFRESH_MS)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [autoRefresh, loadFeeds])
 
   function switchView(v: ViewMode) { setViewMode(v); try { localStorage.setItem(VIEW_KEY, v) } catch {} }
