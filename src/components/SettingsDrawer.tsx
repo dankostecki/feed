@@ -5,6 +5,7 @@ import { NewsItem, Source } from '@/lib/rss'
 import { buildJevExport, itemsInWindow } from '@/lib/jevExport'
 import { SOURCE_COLOR } from '@/lib/feedMeta'
 import { NotifySettings } from '@/lib/notify'
+import type { AwakeState } from '@/lib/wakeLock'
 import { VoiceSettings, ALL_SOURCES, voicesFor, speak, stopSpeaking, Lang } from '@/lib/speech'
 
 interface Props {
@@ -19,6 +20,9 @@ interface Props {
   onClearAll: () => void
   onThemeToggle: () => void
   onAutoRefreshToggle: () => void
+  keepAwake?: boolean
+  awakeState?: AwakeState
+  onKeepAwakeToggle?: () => void
   viewMode?: 'GRID' | 'COLUMNS'
   onViewModeChange?: (v: 'GRID' | 'COLUMNS') => void
   onShowSaved?: () => void
@@ -262,7 +266,7 @@ export default function SettingsDrawer({
   readCount, bookmarkCount,
   theme, autoRefresh,
   onClearRead, onClearBookmarks, onClearAll,
-  onThemeToggle, onAutoRefreshToggle,
+  onThemeToggle, onAutoRefreshToggle, keepAwake, awakeState, onKeepAwakeToggle,
   viewMode, onViewModeChange, onShowSaved,
   onScrollToTop, onSearch, onRefresh, loading,
   sourceOrder, onSourceOrderChange, items, onTopNews,
@@ -436,6 +440,17 @@ export default function SettingsDrawer({
               action={onAutoRefreshToggle}
               actionLabel={autoRefresh ? 'TURN OFF' : 'TURN ON'}
             />
+            {onKeepAwakeToggle && awakeState !== 'unsupported' && (
+              <Row
+                label="Keep screen awake"
+                value={!keepAwake ? 'Off'
+                  : awakeState === 'active' ? 'On · while this tab is open'
+                  : awakeState === 'blocked' ? 'On · blocked by the browser or power saver'
+                  : 'On · when this tab is open'}
+                action={onKeepAwakeToggle}
+                actionLabel={keepAwake ? 'TURN OFF' : 'TURN ON'}
+              />
+            )}
           </Section>
 
           {/* Source order */}
