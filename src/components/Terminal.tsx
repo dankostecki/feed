@@ -12,6 +12,7 @@ import SettingsDrawer from './SettingsDrawer'
 import TopNews from './TopNews'
 import { NotifySettings, DEFAULT_NOTIFY_SETTINGS, loadNotifySettings, saveNotifySettings, notifySupported, notifyPermission, requestNotifyPermission, notifyHeadlines, testNotification } from '@/lib/notify'
 import { ALL_SOURCES } from '@/lib/speech'
+import { useWakeLock, loadKeepAwake, saveKeepAwake } from '@/lib/wakeLock'
 import { VoiceSettings, DEFAULT_VOICE_SETTINGS, loadVoiceSettings, saveVoiceSettings, speechSupported, newHeadlines, announce, speak, stopSpeaking, voicesFor } from '@/lib/speech'
 
 const READ_KEY     = 'cbt:read-articles'
@@ -73,6 +74,11 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
   const [headerVisible,  setHeaderVisible] = useState(true)
   const [headerHeight,   setHeaderHeight]  = useState(0)
   const [topHours,       setTopHours]      = useState<number | null>(null) // TOP NEWS view when set
+  // Keep the screen awake while the page is visible (also while MARKET is shown: this component stays mounted)
+  const [keepAwake, setKeepAwake] = useState(true)
+  const awakeState = useWakeLock(keepAwake)
+  useEffect(() => { setKeepAwake(loadKeepAwake()) }, [])
+  const toggleKeepAwake = useCallback(() => setKeepAwake((v) => { saveKeepAwake(!v); return !v }), [])
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const searchRef    = useRef<HTMLInputElement>(null)
   const lastScrollY  = useRef(0)
@@ -441,6 +447,9 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
         onClearAll={clearAll}
         onThemeToggle={switchTheme}
         onAutoRefreshToggle={() => setAutoRefresh((v) => !v)}
+        keepAwake={keepAwake}
+        awakeState={awakeState}
+        onKeepAwakeToggle={toggleKeepAwake}
         viewMode={viewMode}
         onViewModeChange={switchView}
         onShowSaved={() => { if (viewMode !== 'GRID') switchView('GRID'); handleSourceChange('SAVED'); setSettingsOpen(false) }}
