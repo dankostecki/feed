@@ -15,20 +15,6 @@ export interface FeedConfig {
   label: string
 }
 
-function stripHtml(html: string): string {
-  if (typeof window === 'undefined') return html.replace(/<[^>]+>/g, '')
-  try {
-    const doc = new DOMParser().parseFromString(html, 'text/html')
-    return (doc.body.textContent || '').trim()
-  } catch {
-    return html.replace(/<[^>]+>/g, '').trim()
-  }
-}
-
-function getElText(parent: Element, selector: string): string {
-  return parent.querySelector(selector)?.textContent?.trim() || ''
-}
-
 export function makeId(config: FeedConfig, key: string): string {
   return `${config.source}::${config.label}::${key}`
 }
@@ -38,83 +24,20 @@ export function suffixTitle(title: string, config: FeedConfig): string {
   return title
 }
 
-function parseRSSDoc(doc: Document, config: FeedConfig): NewsItem[] {
-  const items: NewsItem[] = []
-
-  const rssItems = doc.querySelectorAll('channel > item')
-  if (rssItems.length > 0) {
-    rssItems.forEach((item) => {
-      const title = suffixTitle(getElText(item, 'title'), config)
-      if (!title) return
-      const linkEl = item.querySelector('link')
-      const link = linkEl?.textContent?.trim() || item.querySelector('enclosure')?.getAttribute('url') || ''
-      const description = stripHtml(getElText(item, 'description'))
-      const pubDateStr = getElText(item, 'pubDate')
-      const pubDate = pubDateStr ? new Date(pubDateStr) : new Date(0)
-      items.push({
-        id: makeId(config, link || title),
-        title, link, description,
-        pubDate: isNaN(pubDate.getTime()) ? new Date(0) : pubDate,
-        source: config.source,
-        feedLabel: config.label,
-      })
-    })
-    return items
-  }
-
-  // Atom
-  const entries = doc.querySelectorAll('entry')
-  entries.forEach((entry) => {
-    const title = suffixTitle(getElText(entry, 'title'), config)
-    if (!title) return
-    const linkEl =
-      entry.querySelector('link[rel="alternate"]') ||
-      entry.querySelector('link[href]') ||
-      entry.querySelector('link')
-    const link = linkEl?.getAttribute('href') || linkEl?.textContent?.trim() || ''
-    const description = stripHtml(getElText(entry, 'summary') || getElText(entry, 'content'))
-    const pubDateStr = getElText(entry, 'published') || getElText(entry, 'updated') || getElText(entry, 'dc\\:date')
-    const pubDate = pubDateStr ? new Date(pubDateStr) : new Date(0)
-    items.push({
-      id: makeId(config, link || title),
-      title, link, description,
-      pubDate: isNaN(pubDate.getTime()) ? new Date(0) : pubDate,
-      source: config.source,
-      feedLabel: config.label,
-    })
-  })
-
-  return items
-}
-
+// Headlines from /api/rss: parsed on the server (once a minute, shared CDN cache), so the
+// browser downloads a compact list instead of every feed's raw XML.
 export async function fetchAllFeeds(): Promise<{
   items: NewsItem[]
   errors: { feed: string; message: string }[]
 }> {
-  const res = await fetch('/api/rss', { cache: 'no-store' })
+  const res = await fetch('/api/rss')
   if (!res.ok) throw new Error(`API error: ${res.status}`)
-
   const data: {
-    feeds: { source: Source; label: string; xml: string }[]
+    items: { id: string; title: string; link: string; source: Source; feedLabel: string; pubDate: number }[]
     errors: { feed: string; message: string }[]
   } = await res.json()
-
-  const allItems: NewsItem[] = []
-
-  for (const feed of data.feeds) {
-    try {
-      const doc = new DOMParser().parseFromString(feed.xml, 'text/xml')
-      const parseErr = doc.querySelector('parsererror')
-      if (parseErr) continue
-      const items = parseRSSDoc(doc, { source: feed.source, label: feed.label })
-      allItems.push(...items)
-    } catch {
-      // skip malformed feed
-    }
-  }
-
-  const deduped = finalizeItems(allItems)
-  return { items: deduped, errors: data.errors }
+  const items = (data.items ?? []).map((i) => ({ ...i, description: '', pubDate: new Date(i.pubDate) }))
+  return { items, errors: data.errors ?? [] }
 }
 
 export function relativeTime(date: Date): string {
