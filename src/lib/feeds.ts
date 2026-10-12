@@ -31,6 +31,7 @@ export const FEEDS: FeedConfig[] = [
   { url: 'https://static.stooq.pl/rss/pl/c.rss', source: 'STOOQ', label: 'KRAJ' },
   { url: 'https://static.stooq.pl/rss/pl/w.rss', source: 'STOOQ', label: 'ŚWIAT' },
   { url: 'https://api.axios.com/feed/',           source: 'AXIOS', label: 'NEWS' },
+  { url: 'https://seekingalpha.com/market_currents.xml', source: 'SEEKINGALPHA', label: 'CURRENTS' },
 ]
 
 async function fetchFeedXML(url: string): Promise<string> {

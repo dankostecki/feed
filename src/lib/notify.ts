@@ -1,5 +1,6 @@
 import { NewsItem, Source } from './rss'
-import { ALL_SOURCES, cleanTitle } from './speech'
+import { ALL_SOURCES, DEFAULT_ON_SOURCES, migrateSources, cleanTitle } from './speech'
+import { sourceLabel } from './feedMeta'
 
 // Desktop notifications for new headlines (browser Notification API).
 // Independent of voice; shown while the page is open in any tab.
@@ -7,9 +8,10 @@ import { ALL_SOURCES, cleanTitle } from './speech'
 export interface NotifySettings {
   enabled: boolean
   sources: Source[]
+  known?: Source[] // sources that existed when the settings were saved
 }
 
-export const DEFAULT_NOTIFY_SETTINGS: NotifySettings = { enabled: false, sources: [...ALL_SOURCES] }
+export const DEFAULT_NOTIFY_SETTINGS: NotifySettings = { enabled: false, sources: [...DEFAULT_ON_SOURCES] }
 const KEY = 'cbt:notify-settings'
 const MAX_PER_REFRESH = 3
 
@@ -19,7 +21,8 @@ export function loadNotifySettings(): NotifySettings {
     const raw = localStorage.getItem(KEY)
     if (!raw) return DEFAULT_NOTIFY_SETTINGS
     const v = { ...DEFAULT_NOTIFY_SETTINGS, ...JSON.parse(raw) } as NotifySettings
-    v.sources = v.sources.filter((s) => ALL_SOURCES.includes(s))
+    v.sources = migrateSources(JSON.parse(raw).sources, v.known)
+    v.known = ALL_SOURCES
     return v
   } catch {
     return DEFAULT_NOTIFY_SETTINGS
@@ -27,7 +30,7 @@ export function loadNotifySettings(): NotifySettings {
 }
 
 export function saveNotifySettings(v: NotifySettings) {
-  try { localStorage.setItem(KEY, JSON.stringify(v)) } catch {}
+  try { localStorage.setItem(KEY, JSON.stringify({ ...v, known: ALL_SOURCES })) } catch {}
 }
 
 export function notifySupported(): boolean {
@@ -74,7 +77,7 @@ export function testNotification() {
 export function notifyHeadlines(fresh: NewsItem[]) {
   if (!notifySupported() || Notification.permission !== 'granted' || fresh.length === 0) return
   const head = fresh.slice(-MAX_PER_REFRESH)
-  for (const it of head) show(`${it.source} · ${it.feedLabel}`, cleanTitle(it.title), it.id, it.link ? articleUrl(it) : undefined)
+  for (const it of head) show(`${sourceLabel(it.source)} · ${it.feedLabel}`, cleanTitle(it.title), it.id, it.link ? articleUrl(it) : undefined)
   const rest = fresh.length - head.length
   if (rest > 0) show('Hyperliquid TradFi Terminal', `+${rest} more new headline${rest > 1 ? 's' : ''}`, `more-${Date.now()}`)
 }

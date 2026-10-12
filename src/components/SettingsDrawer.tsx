@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { NewsItem, Source } from '@/lib/rss'
 import { buildJevExport, itemsInWindow } from '@/lib/jevExport'
-import { SOURCE_COLOR } from '@/lib/feedMeta'
+import { SOURCE_COLOR, sourceLabel } from '@/lib/feedMeta'
 import { NotifySettings } from '@/lib/notify'
 import type { AwakeState } from '@/lib/wakeLock'
 import { VoiceSettings, ALL_SOURCES, voicesFor, speak, stopSpeaking, Lang } from '@/lib/speech'
@@ -149,7 +149,7 @@ function NotifySection({ settings, perm, onToggle, onChange, onTest }: {
                 style={active
                   ? { color: SOURCE_COLOR[src], borderColor: SOURCE_COLOR[src] + '80', backgroundColor: SOURCE_COLOR[src] + '18' }
                   : { color: 'var(--text-ui)', borderColor: 'var(--border)', opacity: 0.6 }}>
-                {src}
+                {sourceLabel(src)}
               </button>
             )
           })}
@@ -216,7 +216,7 @@ function VoiceSection({ on, onToggle, settings, onChange, voices }: {
                 style={active
                   ? { color: SOURCE_COLOR[src], borderColor: SOURCE_COLOR[src] + '80', backgroundColor: SOURCE_COLOR[src] + '18' }
                   : { color: 'var(--text-ui)', borderColor: 'var(--border)', opacity: 0.6 }}>
-                {src}
+                {sourceLabel(src)}
               </button>
             )
           })}
@@ -461,7 +461,7 @@ export default function SettingsDrawer({
                   <div key={src} className="flex items-center gap-2 py-2" style={{ borderBottom: '1px solid var(--border-dim)' }}>
                     <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: SOURCE_COLOR[src] }} />
                     <span className="text-[11px] font-mono font-bold tracking-widest flex-1" style={{ color: SOURCE_COLOR[src] }}>
-                      {src}
+                      {sourceLabel(src)}
                     </span>
                     <button
                       onClick={() => moveSource(i, -1)}
@@ -517,7 +517,7 @@ export default function SettingsDrawer({
             <div className="pt-1 flex flex-col gap-1.5">
               {[
                 ['App', 'Hyperliquid TradFi Terminal v2.0'],
-                ['Sources', 'FED · ECB · NBP · REUTERS · BLOOMBERG · STOOQ · AXIOS'],
+                ['Sources', 'FED · ECB · NBP · REUTERS · BLOOMBERG · STOOQ · AXIOS · SEEKING ALPHA'],
                 ['Storage', 'Browser localStorage only'],
                 ['Network', 'Vercel serverless API'],
               ].map(([k, v]) => (

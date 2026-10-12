@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Source } from '@/lib/rss'
-import { FEED_META, SOURCE_COLOR, SOURCE_BG, SOURCE_BD, SOURCE_SUBFEEDS } from '@/lib/feedMeta'
+import { FEED_META, SOURCE_COLOR, SOURCE_BG, SOURCE_BD, SOURCE_SUBFEEDS, sourceLabel } from '@/lib/feedMeta'
 
 export type Filter = 'ALL' | Source | 'SAVED'
 
@@ -27,6 +27,7 @@ const BTN: Record<string, { color: string; bg: string; bd: string }> = {
   BLOOMBERG: { color: 'var(--src-BLOOMBERG)', bg: 'var(--src-BLOOMBERG-bg)', bd: 'var(--src-BLOOMBERG-bd)' },
   STOOQ:     { color: 'var(--src-STOOQ)',     bg: 'var(--src-STOOQ-bg)',     bd: 'var(--src-STOOQ-bd)'     },
   AXIOS:     { color: 'var(--src-AXIOS)',     bg: 'var(--src-AXIOS-bg)',     bd: 'var(--src-AXIOS-bd)'     },
+  SEEKINGALPHA: { color: 'var(--src-SEEKINGALPHA)', bg: 'var(--src-SEEKINGALPHA-bg)', bd: 'var(--src-SEEKINGALPHA-bd)' },
   SAVED:     { color: 'var(--feed-fed-press)', bg: 'var(--feed-fed-press-bg)', bd: 'var(--feed-fed-press-bd)' },
 }
 
@@ -39,6 +40,7 @@ const DEFAULT_SOURCES: { value: Filter; label: string }[] = [
   { value: 'BLOOMBERG', label: 'BLOOMBERG' },
   { value: 'STOOQ',     label: 'STOOQ'     },
   { value: 'AXIOS',     label: 'AXIOS'     },
+  { value: 'SEEKINGALPHA', label: 'SEEKING ALPHA' },
   { value: 'SAVED',     label: 'SAVED'     },
 ]
 
@@ -59,7 +61,7 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
   const SOURCES = sourceOrder
     ? [
         { value: 'ALL' as Filter, label: 'ALL' },
-        ...sourceOrder.map((s) => ({ value: s as Filter, label: s })),
+        ...sourceOrder.map((s) => ({ value: s as Filter, label: sourceLabel(s) })),
         { value: 'SAVED' as Filter, label: 'SAVED' },
       ]
     : DEFAULT_SOURCES
@@ -80,7 +82,7 @@ export default function FilterBar({ source, subFilters, counts, subCounts, onSou
             <button
               key={value}
               onClick={() => onSourceChange(value)}
-              className="flex items-center gap-2 px-3.5 py-2.5 sm:py-2 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-100 shrink-0"
+              className="flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-[12px] font-bold tracking-widest border rounded-sm font-mono transition-all duration-100 shrink-0"
               style={
                 isActive
                   ? {

@@ -79,7 +79,7 @@ export function buildJevRequest(items: NewsItem[], hours: number, now = new Date
   })
 
   const state = [
-    `Financial news headlines published ${utc(from)} – ${utc(now)} (last ${hours}h), ${list.length} headlines from: FED, ECB, NBP (Polish central bank), Reuters, Bloomberg, Stooq (Polish), Axios.`,
+    `Financial news headlines published ${utc(from)} – ${utc(now)} (last ${hours}h), ${list.length} headlines from: FED, ECB, NBP (Polish central bank), Reuters, Bloomberg, Stooq (Polish), Axios, Seeking Alpha (short company and market news).`,
     'The headlines are the options of the question. Some sources repeat the same story; a story covered by several sources is more important.',
     '',
     'The reader is a macro / TradFi trader following: S&P 500, Nasdaq 100, WTI and Brent oil, gold, silver, natural gas, copper, EUR/USD, USD/JPY, Bitcoin, Ethereum, and Polish markets (WIG, PLN).',

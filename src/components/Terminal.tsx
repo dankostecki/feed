@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { fetchAllFeeds, NewsItem, Source } from '@/lib/rss'
-import { SOURCE_COLOR } from '@/lib/feedMeta'
+import { SOURCE_COLOR, sourceShort } from '@/lib/feedMeta'
 import NewsCard from './NewsCard'
 import Column from './Column'
 import DateSeparator, { dayKey } from './DateSeparator'
@@ -26,7 +26,7 @@ type Theme    = 'dark'  | 'light'
 const FRESH_MS = 10 * 60_000 // how long a new headline keeps its NEW badge
 const REFRESH_MS = 60_000            // AUTO refresh
 const HIDDEN_REFRESH_MS = 5 * 60_000 // AUTO refresh while the browser tab is hidden and nothing reads / notifies
-const DEFAULT_SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG', 'STOOQ', 'AXIOS']
+const DEFAULT_SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG', 'STOOQ', 'AXIOS', 'SEEKINGALPHA']
 
 // ── Control button ────────────────────────────────────────────────────────
 function Btn({ onClick, disabled = false, active = false, accentColor = 'var(--text-ui)', title, children }: {
@@ -183,9 +183,9 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
     try {
       const o = localStorage.getItem(ORDER_KEY)
       if (o) {
-        const parsed = JSON.parse(o) as Source[]
-        // Validate: must contain all sources
-        if (parsed.length === DEFAULT_SOURCES.length && DEFAULT_SOURCES.every((s) => parsed.includes(s))) setSourceOrder(parsed)
+        // Keep the saved order, drop unknown sources, append sources added since it was saved
+        const saved = [...new Set(JSON.parse(o) as Source[])].filter((s) => DEFAULT_SOURCES.includes(s))
+        setSourceOrder([...saved, ...DEFAULT_SOURCES.filter((s) => !saved.includes(s))])
       }
     } catch {}
   }, [])
@@ -354,6 +354,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
     BLOOMBERG: items.filter((i) => i.source === 'BLOOMBERG').length,
     STOOQ:     items.filter((i) => i.source === 'STOOQ').length,
     AXIOS:     items.filter((i) => i.source === 'AXIOS').length,
+    SEEKINGALPHA: items.filter((i) => i.source === 'SEEKINGALPHA').length,
     SAVED:     bookmarkIds.size,
   }
   const subCounts: Record<string, number> = {}
@@ -365,7 +366,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
   const updStr = lastUpdated ? lastUpdated.toISOString().slice(11, 19) : '—'
   const actions = (
     <>
-      <span className="hidden lg:inline font-mono text-[12px] tabular-nums mr-1" style={{ color: 'var(--text-ui)' }}
+      <span className="hidden min-[1700px]:inline font-mono text-[12px] tabular-nums mr-1" style={{ color: 'var(--text-ui)' }}
         title="Last feed update (UTC)">
         UPD {loading ? '…' : updStr}
       </span>
@@ -389,7 +390,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
               <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
               {!notifySettings.enabled && <path d="M2 2l20 20"/>}
             </svg>
-            <span className="hidden lg:inline">NOTIFY</span>
+            <span className="hidden min-[1700px]:inline">NOTIFY</span>
           </Btn>
         </span>
       )}
@@ -402,7 +403,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
             <path d="M11 5L6 9H2v6h4l5 4V5z"/>
             {voiceOn ? <><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/></> : <path d="M23 9l-6 6M17 9l6 6"/>}
           </svg>
-          <span className="hidden md:inline">VOICE</span>
+          <span className="hidden min-[1700px]:inline">VOICE</span>
         </Btn>
       )}
 
@@ -413,7 +414,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
           <svg style={{ width: 13, height: 13 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
           </svg>
-          <span className="hidden md:inline">SEARCH</span>
+          <span className="hidden min-[1700px]:inline">SEARCH</span>
         </Btn>
       </span>
       <span className="hidden sm:flex">
@@ -421,7 +422,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
           <svg style={{ width: 13, height: 13 }} className={loading ? 'animate-spin' : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M21 12a9 9 0 11-6.219-8.56" />
           </svg>
-          <span className="hidden md:inline">{loading ? 'SYNC…' : 'REFRESH'}</span>
+          <span className="hidden min-[1700px]:inline">{loading ? 'SYNC…' : 'REFRESH'}</span>
         </Btn>
       </span>
 
@@ -552,20 +553,20 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
 
         {/* Strip 4: COLUMNS mobile tab switcher */}
         {isColumns && (
-          <div className="flex md:hidden" style={{ borderBottom: '1px solid var(--border)' }}>
+          <div className="flex md:hidden overflow-x-auto no-scrollbar" style={{ borderBottom: '1px solid var(--border)' }}>
             {sourceOrder.map((src) => {
               const isActive = mobileActiveCol === src
               const color = SOURCE_COLOR[src]
               return (
                 <button key={src} onClick={() => setMobileActiveCol(src)}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 text-[11px] font-bold tracking-widest font-mono transition-all duration-150"
+                  className="flex-1 shrink-0 flex items-center justify-center gap-1 px-0.5 py-2 text-[11px] font-bold tracking-wide font-mono transition-all duration-150"
                   style={
                     isActive
                       ? { color, backgroundColor: `${color}10`, borderBottom: `2px solid ${color}` }
                       : { color, opacity: 0.45, borderBottom: '2px solid transparent' }
                   }
                 >
-                  {src}
+                  {sourceShort(src)}
                   <span style={{ opacity: 0.6, fontSize: '12px' }}>{counts[src]}</span>
                 </button>
               )

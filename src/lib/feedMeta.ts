@@ -1,10 +1,12 @@
+import type { Source } from './rss'
+
 export interface FeedMeta {
   color: string   // CSS var — resolves to neon (dark) or deep (light)
   bg: string      // CSS var — translucent background for tag
   border: string  // CSS var — translucent border for tag
   symbol: string
   label: string
-  source: 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ' | 'AXIOS'
+  source: Source
 }
 
 export const FEED_META: Record<string, FeedMeta> = {
@@ -28,6 +30,7 @@ export const FEED_META: Record<string, FeedMeta> = {
   'STOOQ::KRAJ':   { color: 'var(--feed-stooq-kraj)',   bg: 'var(--feed-stooq-kraj-bg)',   border: 'var(--feed-stooq-kraj-bd)',   symbol: '◎', label: 'STOOQ · KRAJ',   source: 'STOOQ' },
   'STOOQ::ŚWIAT':  { color: 'var(--feed-stooq-swiat)',  bg: 'var(--feed-stooq-swiat-bg)',  border: 'var(--feed-stooq-swiat-bd)',  symbol: '◆', label: 'STOOQ · ŚWIAT',  source: 'STOOQ' },
   'AXIOS::NEWS':   { color: 'var(--feed-axios-news)',   bg: 'var(--feed-axios-news-bg)',   border: 'var(--feed-axios-news-bd)',   symbol: '◉', label: 'AXIOS · NEWS',   source: 'AXIOS' },
+  'SEEKINGALPHA::CURRENTS': { color: 'var(--feed-seekingalpha-currents)', bg: 'var(--feed-seekingalpha-currents-bg)', border: 'var(--feed-seekingalpha-currents-bd)', symbol: '◉', label: 'SEEKING ALPHA · CURRENTS', source: 'SEEKINGALPHA' },
 }
 
 export const SOURCE_SUBFEEDS: Record<string, string[]> = {
@@ -38,6 +41,7 @@ export const SOURCE_SUBFEEDS: Record<string, string[]> = {
   BLOOMBERG: ['MARKETS', 'ECONOMICS', 'POLITICS'],
   STOOQ: ['BIZNES', 'KRAJ', 'ŚWIAT'],
   AXIOS: ['NEWS'],
+  SEEKINGALPHA: ['CURRENTS'],
 }
 
 // All return CSS vars — resolved correctly for dark AND light by the browser
@@ -49,6 +53,7 @@ export const SOURCE_COLOR: Record<string, string> = {
   BLOOMBERG: 'var(--src-BLOOMBERG)',
   STOOQ: 'var(--src-STOOQ)',
   AXIOS: 'var(--src-AXIOS)',
+  SEEKINGALPHA: 'var(--src-SEEKINGALPHA)',
 }
 
 export const SOURCE_BG: Record<string, string> = {
@@ -59,6 +64,7 @@ export const SOURCE_BG: Record<string, string> = {
   BLOOMBERG: 'var(--src-BLOOMBERG-bg)',
   STOOQ: 'var(--src-STOOQ-bg)',
   AXIOS: 'var(--src-AXIOS-bg)',
+  SEEKINGALPHA: 'var(--src-SEEKINGALPHA-bg)',
 }
 
 export const SOURCE_BD: Record<string, string> = {
@@ -69,7 +75,14 @@ export const SOURCE_BD: Record<string, string> = {
   BLOOMBERG: 'var(--src-BLOOMBERG-bd)',
   STOOQ: 'var(--src-STOOQ-bd)',
   AXIOS: 'var(--src-AXIOS-bd)',
+  SEEKINGALPHA: 'var(--src-SEEKINGALPHA-bd)',
 }
+
+// Display names (the source key is also a CSS variable name, so it cannot contain a space)
+const SOURCE_LABEL: Record<string, string> = { SEEKINGALPHA: 'SEEKING ALPHA' }
+const SOURCE_SHORT: Record<string, string> = { SEEKINGALPHA: 'SA' }
+export const sourceLabel = (s: string): string => SOURCE_LABEL[s] ?? s
+export const sourceShort = (s: string): string => SOURCE_SHORT[s] ?? s
 
 export function getFeedMeta(source: string, feedLabel: string): FeedMeta {
   return (
@@ -79,7 +92,7 @@ export function getFeedMeta(source: string, feedLabel: string): FeedMeta {
       border: 'rgba(107,114,128,0.25)',
       symbol: '○',
       label: `${source} · ${feedLabel}`,
-      source: source as 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ' | 'AXIOS',
+      source: source as Source,
     }
   )
 }
