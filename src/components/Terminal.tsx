@@ -138,10 +138,17 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
     setVoiceSettings(loadVoiceSettings())
     if (!speechSupported()) return
     setCanSpeak(true)
-    const update = () => setVoices(window.speechSynthesis.getVoices())
+    const update = () => {
+      const list = window.speechSynthesis.getVoices()
+      setVoices((prev) => (prev.length === list.length ? prev : list))
+      return list.length
+    }
     update()
     window.speechSynthesis.addEventListener('voiceschanged', update)
-    return () => window.speechSynthesis.removeEventListener('voiceschanged', update)
+    // Chrome sometimes loads the voice list late and does not always announce it: look again for a while
+    let tries = 0
+    const poll = setInterval(() => { if (update() > 0 || ++tries >= 20) clearInterval(poll) }, 500)
+    return () => { clearInterval(poll); window.speechSynthesis.removeEventListener('voiceschanged', update) }
   }, [])
   // ── Desktop notifications (independent of voice) ──
   const [notifySettings, setNotifySettings] = useState<NotifySettings>(DEFAULT_NOTIFY_SETTINGS)
@@ -170,8 +177,10 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
     setVoiceOn(true)
     setAutoRefresh(true) // voice only makes sense with auto-refresh
     // Speaking inside the click also unlocks speech in browsers that require a user gesture
-    const pl = voicesFor(voices, 'pl').length > 0
-    speak(pl ? 'Głos włączony.' : 'Voice on.', pl ? 'pl' : 'en', voiceSettings, voices)
+    const list = voices.length ? voices : window.speechSynthesis.getVoices()
+    if (list.length !== voices.length) setVoices(list)
+    const pl = voicesFor(list, 'pl').length > 0
+    speak(pl ? 'Głos włączony.' : 'Voice on.', pl ? 'pl' : 'en', voiceSettings, list)
   }
 
   // Restore persisted state
