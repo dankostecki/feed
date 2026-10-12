@@ -34,9 +34,24 @@ export const FEEDS: FeedConfig[] = [
   { url: 'https://seekingalpha.com/market_currents.xml', source: 'SEEKINGALPHA', label: 'CURRENTS' },
 ]
 
+const TIMEOUT_MS = 8000
+const STALE_MAX_MS = 30 * 60_000   // a feed that stopped answering keeps showing its last headlines this long
+const RETRY_MAX_MS = 10 * 60_000
+
+// Per feed, per server instance: the last good body and how often it failed in a row.
+// A feed that keeps failing (blocked, hanging) is retried with growing pauses (after the
+// 2nd failure in a row: 2, 4, 8, then 10 min) instead of holding up every refresh of the others.
+interface FeedState { xml?: string; okAt: number; fails: number; failedAt: number; error: string }
+const states = new Map<string, FeedState>()
+const stateOf = (url: string): FeedState => {
+  let st = states.get(url)
+  if (!st) states.set(url, (st = { okAt: 0, fails: 0, failedAt: 0, error: '' }))
+  return st
+}
+
 async function fetchFeedXML(url: string): Promise<string> {
   const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), 8000)
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS)
   try {
     const res = await fetch(url, {
       signal: ctrl.signal,
@@ -45,11 +60,31 @@ async function fetchFeedXML(url: string): Promise<string> {
         'Accept': 'application/rss+xml, application/xml, text/xml, */*',
       },
     })
-    clearTimeout(timer)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    return res.text()
+    return await res.text()
   } catch (e) {
+    throw e instanceof Error && e.name === 'AbortError' ? new Error(`no answer in ${TIMEOUT_MS / 1000}s`) : e
+  } finally {
     clearTimeout(timer)
+  }
+}
+
+async function loadFeed(feed: FeedConfig): Promise<string> {
+  const st = stateOf(feed.url)
+  const now = Date.now()
+  const pause = Math.min(RETRY_MAX_MS, 60_000 * 2 ** Math.max(0, st.fails - 1))
+  if (st.fails > 0 && now - st.failedAt < pause) {
+    if (st.xml && now - st.okAt < STALE_MAX_MS) return st.xml
+    throw new Error(st.error)
+  }
+  try {
+    const xml = await fetchFeedXML(feed.url)
+    st.xml = xml; st.okAt = now; st.fails = 0
+    return xml
+  } catch (e) {
+    st.fails++; st.failedAt = Date.now()
+    st.error = e instanceof Error ? e.message : 'Unknown error'
+    if (st.xml && now - st.okAt < STALE_MAX_MS) return st.xml
     throw e
   }
 }
@@ -58,7 +93,7 @@ export interface RawFeed { source: string; label: string; xml: string }
 
 export async function fetchAllFeedXml(): Promise<{ feeds: RawFeed[]; errors: { feed: string; message: string }[] }> {
   const results = await Promise.allSettled(
-    FEEDS.map(async (feed) => ({ source: feed.source, label: feed.label, xml: await fetchFeedXML(feed.url) }))
+    FEEDS.map(async (feed) => ({ source: feed.source, label: feed.label, xml: await loadFeed(feed) }))
   )
   const feeds: RawFeed[] = []
   const errors: { feed: string; message: string }[] = []

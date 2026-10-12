@@ -8,7 +8,7 @@ import { sourceLabel } from './feedMeta'
 export interface NotifySettings {
   enabled: boolean
   sources: Source[]
-  known?: Source[] // sources that existed when the settings were saved
+  seen?: Source[] // sources that existed when the settings were saved
 }
 
 export const DEFAULT_NOTIFY_SETTINGS: NotifySettings = { enabled: false, sources: [...DEFAULT_ON_SOURCES] }
@@ -21,8 +21,8 @@ export function loadNotifySettings(): NotifySettings {
     const raw = localStorage.getItem(KEY)
     if (!raw) return DEFAULT_NOTIFY_SETTINGS
     const v = { ...DEFAULT_NOTIFY_SETTINGS, ...JSON.parse(raw) } as NotifySettings
-    v.sources = migrateSources(JSON.parse(raw).sources, v.known)
-    v.known = ALL_SOURCES
+    v.sources = migrateSources(JSON.parse(raw).sources, v.seen)
+    v.seen = ALL_SOURCES
     return v
   } catch {
     return DEFAULT_NOTIFY_SETTINGS
@@ -30,7 +30,7 @@ export function loadNotifySettings(): NotifySettings {
 }
 
 export function saveNotifySettings(v: NotifySettings) {
-  try { localStorage.setItem(KEY, JSON.stringify({ ...v, known: ALL_SOURCES })) } catch {}
+  try { localStorage.setItem(KEY, JSON.stringify({ ...v, seen: ALL_SOURCES })) } catch {}
 }
 
 export function notifySupported(): boolean {

@@ -189,7 +189,7 @@ function VoiceSection({ on, onToggle, settings, onChange, voices }: {
             {list.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{v.name}</option>)}
           </select>
         ) : (
-          <span className="text-[11px] font-mono" style={{ color: '#f87171' }}>{voices.length ? 'not installed' : 'loading…'}</span>
+          <span className="text-[11px] font-mono" style={{ color: voices.length ? '#f87171' : 'var(--text-ui)' }}>{voices.length ? 'not installed' : 'browser default'}</span>
         )}
         <button onClick={() => test(lang)} className={btn} style={BTN_STYLE} title="Play a test sentence">TEST</button>
       </div>
