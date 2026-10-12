@@ -3,7 +3,7 @@
 One Next.js app with two tabs:
 
 - **MARKET** — TradFi quotes from the public Hyperliquid API (HIP-3 `xyz` / `cash` dexes plus BTC / ETH): price, change, day or weekend range, candlestick chart per instrument (TradingView Lightweight Charts), screenshot to share.
-- **NEWS** — headlines from FED, ECB, NBP, Reuters, Bloomberg, Stooq and Axios via `/api/rss`, with filters, search, bookmarks, auto-refresh, read-aloud (Web Speech API) and an export for TypeSafe Jev.
+- **NEWS** — headlines from FED, ECB, NBP, Reuters, Bloomberg, Stooq, Axios and Seeking Alpha via `/api/rss`, with filters, search, bookmarks, auto-refresh, read-aloud (Web Speech API) and an export for TypeSafe Jev.
 
 The NEWS tab stays mounted while MARKET is shown, so auto-refresh and voice keep running. `?tab=news` / `?tab=market` open a tab directly; the last tab is remembered.
 

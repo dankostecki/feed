@@ -130,6 +130,15 @@
   --feed-axios-news:    #06b6d4;
   --feed-axios-news-bg: rgba(6,182,212,0.10);
   --feed-axios-news-bd: rgba(6,182,212,0.32);
+
+  /* Seeking Alpha: lime */
+  --src-SEEKINGALPHA:    #a3e635;
+  --src-SEEKINGALPHA-bg: rgba(163,230,53,0.09);
+  --src-SEEKINGALPHA-bd: rgba(163,230,53,0.30);
+
+  --feed-seekingalpha-currents:    #a3e635;
+  --feed-seekingalpha-currents-bg: rgba(163,230,53,0.10);
+  --feed-seekingalpha-currents-bd: rgba(163,230,53,0.32);
 }
 
 /* ── Light mode ──────────────────────────────────────────────────────────── */
@@ -258,6 +267,15 @@
   --feed-axios-news:    #0e7490;
   --feed-axios-news-bg: rgba(14,116,144,0.08);
   --feed-axios-news-bd: rgba(14,116,144,0.28);
+
+  /* Seeking Alpha: olive (readable on light backgrounds) */
+  --src-SEEKINGALPHA:    #4d7c0f;
+  --src-SEEKINGALPHA-bg: rgba(77,124,15,0.08);
+  --src-SEEKINGALPHA-bd: rgba(77,124,15,0.28);
+
+  --feed-seekingalpha-currents:    #4d7c0f;
+  --feed-seekingalpha-currents-bg: rgba(77,124,15,0.08);
+  --feed-seekingalpha-currents-bd: rgba(77,124,15,0.28);
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */

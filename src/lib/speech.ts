@@ -3,15 +3,29 @@ import { NewsItem, Source } from './rss'
 // Text-to-speech for new headlines, using the browser's built-in Web Speech API.
 // Nothing is sent to a server; available voices depend on the OS / browser.
 
-export const ALL_SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG', 'STOOQ', 'AXIOS']
+export const ALL_SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG', 'STOOQ', 'AXIOS', 'SEEKINGALPHA']
+// Very frequent sources stay silent (no voice, no notifications) until switched on in Settings
+export const QUIET_SOURCES: Source[] = ['SEEKINGALPHA']
+export const DEFAULT_ON_SOURCES: Source[] = ALL_SOURCES.filter((s) => !QUIET_SOURCES.includes(s))
+const LEGACY_SOURCES: Source[] = ['FED', 'ECB', 'NBP', 'REUTERS', 'BLOOMBERG', 'STOOQ', 'AXIOS'] // sources that existed before `known` was stored
+
+// Saved source selection → current one: drop unknown sources, and add sources that were
+// introduced after it was saved (switched on, unless they are quiet by default)
+export function migrateSources(saved: Source[] | undefined, known: Source[] | undefined): Source[] {
+  const keep = (saved ?? DEFAULT_ON_SOURCES).filter((s) => ALL_SOURCES.includes(s))
+  const knownNow = known ?? LEGACY_SOURCES
+  const added = ALL_SOURCES.filter((s) => !knownNow.includes(s) && !QUIET_SOURCES.includes(s) && !keep.includes(s))
+  return [...keep, ...added]
+}
 const POLISH_SOURCES: Source[] = ['NBP', 'STOOQ']
 
 const SPOKEN_NAME: Record<Source, string> = {
-  FED: 'Fed', ECB: 'ECB', NBP: 'NBP', REUTERS: 'Reuters', BLOOMBERG: 'Bloomberg', STOOQ: 'Stooq', AXIOS: 'Axios',
+  FED: 'Fed', ECB: 'ECB', NBP: 'NBP', REUTERS: 'Reuters', BLOOMBERG: 'Bloomberg', STOOQ: 'Stooq', AXIOS: 'Axios', SEEKINGALPHA: 'Seeking Alpha',
 }
 
 export interface VoiceSettings {
   sources: Source[]
+  known?: Source[] // sources that existed when the settings were saved
   voiceEn: string // voiceURI, '' = automatic
   voicePl: string
   rate: number
@@ -19,7 +33,7 @@ export interface VoiceSettings {
 }
 
 export const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
-  sources: [...ALL_SOURCES],
+  sources: [...DEFAULT_ON_SOURCES],
   voiceEn: '',
   voicePl: '',
   rate: 1,
@@ -35,7 +49,8 @@ export function loadVoiceSettings(): VoiceSettings {
     const raw = localStorage.getItem(KEY)
     if (!raw) return DEFAULT_VOICE_SETTINGS
     const v = { ...DEFAULT_VOICE_SETTINGS, ...JSON.parse(raw) } as VoiceSettings
-    v.sources = v.sources.filter((s) => ALL_SOURCES.includes(s))
+    v.sources = migrateSources(JSON.parse(raw).sources, v.known)
+    v.known = ALL_SOURCES
     return v
   } catch {
     return DEFAULT_VOICE_SETTINGS
@@ -43,7 +58,7 @@ export function loadVoiceSettings(): VoiceSettings {
 }
 
 export function saveVoiceSettings(v: VoiceSettings) {
-  try { localStorage.setItem(KEY, JSON.stringify(v)) } catch {}
+  try { localStorage.setItem(KEY, JSON.stringify({ ...v, known: ALL_SOURCES })) } catch {}
 }
 
 export function speechSupported(): boolean {

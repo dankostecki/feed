@@ -1,12 +1,12 @@
 'use client'
 
-import { NewsItem } from '@/lib/rss'
-import { FEED_META, SOURCE_COLOR, SOURCE_BG, SOURCE_BD, SOURCE_SUBFEEDS } from '@/lib/feedMeta'
+import { NewsItem, Source } from '@/lib/rss'
+import { FEED_META, SOURCE_COLOR, SOURCE_BG, SOURCE_BD, SOURCE_SUBFEEDS, sourceLabel } from '@/lib/feedMeta'
 import NewsCard from './NewsCard'
 import DateSeparator, { dayKey } from './DateSeparator'
 
 interface Props {
-  source: 'FED' | 'ECB' | 'NBP' | 'REUTERS' | 'BLOOMBERG' | 'STOOQ' | 'AXIOS'
+  source: Source
   items: NewsItem[]
   subFilters: Set<string>
   subCounts: Record<string, number>
@@ -32,6 +32,7 @@ const SOURCE_FULL: Record<string, string> = {
   BLOOMBERG: 'Bloomberg L.P.',
   STOOQ: 'Stooq.pl',
   AXIOS: 'Axios Media',
+  SEEKINGALPHA: 'Seeking Alpha · Market Currents',
 }
 
 export default function Column({ source, items, subFilters, subCounts, readIds, bookmarkIds, loading, initialLoaded, searchQuery, onRead, onBookmark, onSubFilterToggle, freshAt, sweptIds, onSwept, onSeen }: Props) {
@@ -62,7 +63,7 @@ export default function Column({ source, items, subFilters, subCounts, readIds, 
           <div className="flex items-center gap-2.5">
             <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }} />
             <div className="flex flex-col leading-none gap-0.5">
-              <span className="text-[13px] font-bold tracking-[0.12em] uppercase" style={{ color }}>{source}</span>
+              <span className="text-[13px] font-bold tracking-[0.12em] uppercase" style={{ color }}>{sourceLabel(source)}</span>
               <span className="text-[11px] font-mono" style={{ color: 'var(--text-ui)' }}>{SOURCE_FULL[source]}</span>
             </div>
           </div>
