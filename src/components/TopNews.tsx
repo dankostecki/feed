@@ -14,6 +14,7 @@ interface Props {
   hours: number
   onHours: (h: number) => void
   onBack: () => void
+  exclude?: string[] // sources switched off in Settings
   readIds: Set<string>
   bookmarkIds: Set<string>
   onRead: (id: string) => void
@@ -29,14 +30,15 @@ const GENERIC_ERROR = 'Top news is not available right now. Try again in a momen
 const utcTime = (iso: string) => new Date(iso).toISOString().slice(11, 16) + ' UTC'
 
 // Top headlines of the last N hours, ranked server-side (/api/top)
-export default function TopNews({ hours, onHours, onBack, readIds, bookmarkIds, onRead, onBookmark }: Props) {
+export default function TopNews({ hours, onHours, onBack, exclude = [], readIds, bookmarkIds, onRead, onBookmark }: Props) {
   const [state, setState] = useState<State>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
 
+  const excluded = [...exclude].sort().join(',')
   useEffect(() => {
     let cancelled = false
     setState({ status: 'loading' })
-    fetch(`/api/top?hours=${hours}`)
+    fetch(`/api/top?hours=${hours}${excluded ? `&exclude=${excluded}` : ''}`)
       .then(async (r) => {
         const body = await r.json().catch(() => null)
         if (cancelled) return
@@ -45,7 +47,7 @@ export default function TopNews({ hours, onHours, onBack, readIds, bookmarkIds, 
       })
       .catch(() => { if (!cancelled) setState({ status: 'error', code: 'network', message: '' }) })
     return () => { cancelled = true }
-  }, [hours, attempt])
+  }, [hours, excluded, attempt])
 
   // Escape → back to the feed
   useEffect(() => {

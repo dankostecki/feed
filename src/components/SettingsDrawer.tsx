@@ -32,6 +32,8 @@ interface Props {
   loading?: boolean
   sourceOrder?: Source[]
   onSourceOrderChange?: (order: Source[]) => void
+  hiddenSources?: Source[]
+  onHiddenSourcesChange?: (hidden: Source[]) => void
   items?: NewsItem[]
   onTopNews?: (hours: number) => void
   voiceOn?: boolean
@@ -269,7 +271,7 @@ export default function SettingsDrawer({
   onThemeToggle, onAutoRefreshToggle, keepAwake, awakeState, onKeepAwakeToggle,
   viewMode, onViewModeChange, onShowSaved,
   onScrollToTop, onSearch, onRefresh, loading,
-  sourceOrder, onSourceOrderChange, items, onTopNews,
+  sourceOrder, onSourceOrderChange, hiddenSources = [], onHiddenSourcesChange, items, onTopNews,
   voiceOn, onVoiceToggle, voiceSettings, onVoiceSettingsChange, voices = [],
   notifySettings, notifyPerm = 'unsupported', onNotifyToggle, onNotifySettingsChange, onNotifyTest,
 }: Props) {
@@ -280,6 +282,13 @@ export default function SettingsDrawer({
     const next = [...sourceOrder]
     ;[next[idx], next[newIdx]] = [next[newIdx], next[idx]]
     onSourceOrderChange(next)
+  }
+  // At least one source stays on so the feed is never empty by accident
+  function toggleShown(src: Source) {
+    if (!sourceOrder || !onHiddenSourcesChange) return
+    if (hiddenSources.includes(src)) { onHiddenSourcesChange(hiddenSources.filter((s) => s !== src)); return }
+    if (sourceOrder.every((s) => s === src || hiddenSources.includes(s))) return
+    onHiddenSourcesChange([...hiddenSources, src])
   }
   // Close on Escape
   useEffect(() => {
@@ -418,6 +427,56 @@ export default function SettingsDrawer({
             </Section>
           )}
 
+          {/* Sources: show / hide and order */}
+          {sourceOrder && onSourceOrderChange && (
+            <Section title="Sources">
+              <div className="flex flex-col">
+                {sourceOrder.map((src, i) => {
+                  const shown = !hiddenSources.includes(src)
+                  const last = shown && sourceOrder.every((s) => s === src || hiddenSources.includes(s))
+                  return (
+                  <div key={src} className="flex items-center gap-2 py-2" style={{ borderBottom: '1px solid var(--border-dim)' }}>
+                    <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: SOURCE_COLOR[src], opacity: shown ? 1 : 0.35 }} />
+                    <span className="text-[11px] font-mono font-bold tracking-widest flex-1" style={{ color: SOURCE_COLOR[src], opacity: shown ? 1 : 0.45 }}>
+                      {sourceLabel(src)}
+                    </span>
+                    {onHiddenSourcesChange && (
+                      <button onClick={() => toggleShown(src)} disabled={last} aria-pressed={shown}
+                        title={last ? 'At least one source has to stay on' : shown ? 'Shown in the feed: click to hide' : 'Hidden: click to show in the feed'}
+                        className="px-2.5 h-9 border rounded-sm text-[12px] font-bold tracking-widest font-mono transition-all duration-150 active:scale-95 disabled:opacity-40"
+                        style={shown
+                          ? { color: SOURCE_COLOR[src], borderColor: SOURCE_COLOR[src] + '80', backgroundColor: SOURCE_COLOR[src] + '18', touchAction: 'manipulation' }
+                          : { color: 'var(--text-ui)', borderColor: 'var(--border)', touchAction: 'manipulation' }}>
+                        {shown ? 'ON' : 'OFF'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => moveSource(i, -1)}
+                      disabled={i === 0}
+                      className="w-9 h-9 flex items-center justify-center border rounded-sm text-[11px] font-mono transition-all duration-150 active:scale-95"
+                      style={{ color: i === 0 ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)', touchAction: 'manipulation' }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 15l-6-6-6 6"/>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => moveSource(i, 1)}
+                      disabled={i === sourceOrder.length - 1}
+                      className="w-9 h-9 flex items-center justify-center border rounded-sm text-[11px] font-mono transition-all duration-150 active:scale-95"
+                      style={{ color: i === sourceOrder.length - 1 ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)', touchAction: 'manipulation' }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 9l6 6 6-6"/>
+                      </svg>
+                    </button>
+                  </div>
+                  )
+                })}
+              </div>
+            </Section>
+          )}
+
           {notifySettings && onNotifyToggle && onNotifySettingsChange && onNotifyTest && (
             <NotifySection settings={notifySettings} perm={notifyPerm} onToggle={onNotifyToggle}
               onChange={onNotifySettingsChange} onTest={onNotifyTest} />
@@ -452,42 +511,6 @@ export default function SettingsDrawer({
               />
             )}
           </Section>
-
-          {/* Source order */}
-          {sourceOrder && onSourceOrderChange && (
-            <Section title="Source Order">
-              <div className="flex flex-col">
-                {sourceOrder.map((src, i) => (
-                  <div key={src} className="flex items-center gap-2 py-2" style={{ borderBottom: '1px solid var(--border-dim)' }}>
-                    <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: SOURCE_COLOR[src] }} />
-                    <span className="text-[11px] font-mono font-bold tracking-widest flex-1" style={{ color: SOURCE_COLOR[src] }}>
-                      {sourceLabel(src)}
-                    </span>
-                    <button
-                      onClick={() => moveSource(i, -1)}
-                      disabled={i === 0}
-                      className="w-9 h-9 flex items-center justify-center border rounded-sm text-[11px] font-mono transition-all duration-150 active:scale-95"
-                      style={{ color: i === 0 ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)', touchAction: 'manipulation' }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 15l-6-6-6 6"/>
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => moveSource(i, 1)}
-                      disabled={i === sourceOrder.length - 1}
-                      className="w-9 h-9 flex items-center justify-center border rounded-sm text-[11px] font-mono transition-all duration-150 active:scale-95"
-                      style={{ color: i === sourceOrder.length - 1 ? 'var(--text-dim)' : 'var(--text-ui)', borderColor: 'var(--border)', touchAction: 'manipulation' }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M6 9l6 6 6-6"/>
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </Section>
-          )}
 
           <Section title="Local Data">
             <Row
