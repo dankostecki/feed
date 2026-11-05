@@ -20,6 +20,7 @@ const BOOKMARK_KEY = 'cbt:bookmarks'
 const VIEW_KEY     = 'cbt:view-mode'
 const THEME_KEY    = 'cbt:theme'
 const ORDER_KEY    = 'cbt:source-order'
+const HIDDEN_KEY   = 'cbt:hidden-sources'
 
 type ViewMode = 'GRID' | 'COLUMNS'
 type Theme    = 'dark'  | 'light'
@@ -55,7 +56,8 @@ interface TerminalProps {
 }
 
 export default function Terminal({ active = true, topBar, onFresh }: TerminalProps = {}) {
-  const [items,          setItems]         = useState<NewsItem[]>([])
+  const [allItems,       setAllItems]      = useState<NewsItem[]>([])
+  const [hiddenSources,  setHiddenSources] = useState<Source[]>([]) // sources switched off in Settings
   const [viewMode,       setViewMode]      = useState<ViewMode>('GRID')
   const [theme,          setTheme]         = useState<Theme>('dark')
   const [sourceFilter,   setSourceFilter]  = useState<Filter>('ALL')
@@ -63,6 +65,13 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
   const [colSubFilters,  setColSubFilters] = useState<Record<string, Set<string>>>(() => Object.fromEntries(DEFAULT_SOURCES.map((s) => [s, new Set<string>()])) as Record<string, Set<string>>)
   const [sourceOrder,    setSourceOrder]    = useState<Source[]>(DEFAULT_SOURCES)
   const [mobileActiveCol,setMobileActiveCol] = useState<Source>('FED')
+  // Sources switched off disappear from the feed, the filter row, the columns, voice, notifications and the exports
+  const items = useMemo(() => allItems.filter((i) => !hiddenSources.includes(i.source)), [allItems, hiddenSources])
+  const shownOrder = useMemo(() => sourceOrder.filter((s) => !hiddenSources.includes(s)), [sourceOrder, hiddenSources])
+  // The phone column switcher never points at a source that is switched off
+  useEffect(() => { if (shownOrder.length > 0 && !shownOrder.includes(mobileActiveCol)) setMobileActiveCol(shownOrder[0]) }, [shownOrder, mobileActiveCol])
+  const hiddenRef = useRef<Source[]>([])
+  useEffect(() => { hiddenRef.current = hiddenSources }, [hiddenSources])
   const [autoRefresh,    setAutoRefresh]   = useState(false)
   const [loading,        setLoading]       = useState(false)
   const [lastUpdated,    setLastUpdated]   = useState<Date | null>(null)
@@ -190,6 +199,10 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
     try { const v = localStorage.getItem(VIEW_KEY)  as ViewMode | null; if (v === 'GRID' || v === 'COLUMNS') setViewMode(v) } catch {}
     try { const t = localStorage.getItem(THEME_KEY) as Theme   | null; if (t === 'dark' || t === 'light')   setTheme(t)    } catch {}
     try {
+      const h = localStorage.getItem(HIDDEN_KEY)
+      if (h) setHiddenSources([...new Set(JSON.parse(h) as Source[])].filter((s) => DEFAULT_SOURCES.includes(s)))
+    } catch {}
+    try {
       const o = localStorage.getItem(ORDER_KEY)
       if (o) {
         // Keep the saved order, drop unknown sources, append sources added since it was saved
@@ -224,17 +237,18 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
     setLoading(true)
     try {
       const { items: fetched, errors: errs } = await fetchAllFeeds()
-      setItems(fetched); setErrors(errs); setLastUpdated(new Date())
+      setAllItems(fetched); setErrors(errs); setLastUpdated(new Date())
+      const on = (s: Source) => !hiddenRef.current.includes(s)
       const seen = seenIds.current
       const v = voiceRef.current
       if (seen && v.on) {
-        const fresh = newHeadlines(fetched, seen, v.settings.sources)
+        const fresh = newHeadlines(fetched, seen, v.settings.sources.filter(on))
         if (fresh.length) announce(fresh, v.settings, v.voices)
       }
       const n = notifyRef.current
-      if (seen && n.enabled) notifyHeadlines(newHeadlines(fetched, seen, n.sources))
+      if (seen && n.enabled) notifyHeadlines(newHeadlines(fetched, seen, n.sources.filter(on)))
       if (seen) {
-        const fresh = newHeadlines(fetched, seen, ALL_SOURCES)
+        const fresh = newHeadlines(fetched, seen, ALL_SOURCES.filter(on))
         if (fresh.length) {
           const now = Date.now()
           setFreshAt((prev) => ({ ...prev, ...Object.fromEntries(fresh.map((i) => [i.id, now])) }))
@@ -287,8 +301,15 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
   // Settings: clear actions
   function clearRead()      { setReadIds(new Set());      try { localStorage.removeItem(READ_KEY)     } catch {} }
   function clearBookmarks() { setBookmarkIds(new Set()); try { localStorage.removeItem(BOOKMARK_KEY)  } catch {} }
-  function clearAll()       { clearRead(); clearBookmarks(); setSourceOrder(DEFAULT_SOURCES); try { localStorage.removeItem(VIEW_KEY); localStorage.removeItem(THEME_KEY); localStorage.removeItem(ORDER_KEY) } catch {} }
+  function clearAll()       { clearRead(); clearBookmarks(); setSourceOrder(DEFAULT_SOURCES); setHiddenSources([]); try { localStorage.removeItem(VIEW_KEY); localStorage.removeItem(THEME_KEY); localStorage.removeItem(ORDER_KEY); localStorage.removeItem(HIDDEN_KEY) } catch {} }
   function changeSourceOrder(order: Source[]) { setSourceOrder(order); try { localStorage.setItem(ORDER_KEY, JSON.stringify(order)) } catch {} }
+  function changeHiddenSources(next: Source[]) {
+    setHiddenSources(next)
+    try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(next)) } catch {}
+    if (sourceFilter !== 'ALL' && sourceFilter !== 'SAVED' && next.includes(sourceFilter as Source)) { setSourceFilter('ALL'); setSubFilters(new Set()) }
+  }
+  // The feed errors of a source that is switched off are not shown either
+  const shownErrors = errors.filter((e) => !hiddenSources.some((s) => e.feed.startsWith(s + ' ')))
 
   // ── Measure header height for spacer ──
   useEffect(() => {
@@ -488,6 +509,8 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
         loading={loading}
         sourceOrder={sourceOrder}
         onSourceOrderChange={changeSourceOrder}
+        hiddenSources={hiddenSources}
+        onHiddenSourcesChange={changeHiddenSources}
         items={items}
         onTopNews={openTop}
         voiceOn={voiceOn}
@@ -517,7 +540,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
         {!isColumns ? (
           <div className="px-3 sm:px-4 lg:px-6 py-2">
             <FilterBar source={sourceFilter} subFilters={subFilters} counts={counts} subCounts={subCounts}
-              onSourceChange={handleSourceChange} onSubFilterToggle={handleSubFilterToggle} sourceOrder={sourceOrder}
+              onSourceChange={handleSourceChange} onSubFilterToggle={handleSubFilterToggle} sourceOrder={shownOrder}
               actions={actions} />
           </div>
         ) : (
@@ -563,7 +586,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
         {/* Strip 4: COLUMNS mobile tab switcher */}
         {isColumns && (
           <div className="flex md:hidden overflow-x-auto no-scrollbar" style={{ borderBottom: '1px solid var(--border)' }}>
-            {sourceOrder.map((src) => {
+            {shownOrder.map((src) => {
               const isActive = mobileActiveCol === src
               const color = SOURCE_COLOR[src]
               return (
@@ -591,7 +614,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
       {/* ── TOP NEWS in COLUMNS mode ── */}
       {isColumns && topHours != null && (
         <div className="flex-1 overflow-y-auto p-2 sm:p-3 lg:p-4 min-h-0">
-          <TopNews hours={topHours} onHours={setTopHours} onBack={closeTop}
+          <TopNews hours={topHours} onHours={setTopHours} onBack={closeTop} exclude={hiddenSources}
             readIds={readIds} bookmarkIds={bookmarkIds} onRead={markAsRead} onBookmark={toggleBookmark} />
         </div>
       )}
@@ -599,7 +622,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
       {/* ── COLUMN VIEW ── */}
       {isColumns && topHours == null && (
         <div className="flex flex-1 overflow-x-auto overflow-y-hidden min-h-0 columns-scroll">
-          {sourceOrder.map((src) => (
+          {shownOrder.map((src) => (
             /* Mobile: show only active column. Desktop: equal flex columns */
             <div key={src} className={`${mobileActiveCol === src ? 'flex' : 'hidden'} md:flex shrink-0 md:shrink md:flex-1 overflow-hidden`}
               style={{ width: 'min(100vw, 280px)', minWidth: '240px' }}>
@@ -629,7 +652,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
       {/* ── TOP NEWS in GRID mode ── */}
       {!isColumns && topHours != null && (
         <main className="flex-1 p-2 sm:p-3 lg:p-4 pb-24 mx-auto w-full max-w-[2400px]">
-          <TopNews hours={topHours} onHours={setTopHours} onBack={closeTop}
+          <TopNews hours={topHours} onHours={setTopHours} onBack={closeTop} exclude={hiddenSources}
             readIds={readIds} bookmarkIds={bookmarkIds} onRead={markAsRead} onBookmark={toggleBookmark} />
         </main>
       )}
@@ -654,9 +677,9 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
               <span className="font-mono text-sm tracking-widest uppercase" style={{ color: 'var(--text-dim)' }}>
                 {sourceFilter === 'SAVED' ? 'No bookmarks yet' : 'No articles found'}
               </span>
-              {errors.length > 0 && (
+              {shownErrors.length > 0 && (
                 <ul className="mt-3 text-[11px] font-mono text-center space-y-1.5" style={{ color: 'rgba(248,113,113,0.6)' }}>
-                  {errors.map((e, i) => <li key={i}>[{e.feed}] {e.message}</li>)}
+                  {shownErrors.map((e, i) => <li key={i}>[{e.feed}] {e.message}</li>)}
                 </ul>
               )}
             </div>
@@ -747,7 +770,7 @@ export default function Terminal({ active = true, topBar, onFresh }: TerminalPro
         totalItems={items.length}
         visibleItems={isColumns ? items.length : gridFiltered.length}
         loading={loading} lastUpdated={lastUpdated}
-        errors={errors} autoRefresh={autoRefresh}
+        errors={shownErrors} autoRefresh={autoRefresh}
         hidden={!isColumns}
       />
     </div>
