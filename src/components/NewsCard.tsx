@@ -48,7 +48,7 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark, f
 
   function handleCopy(e: React.MouseEvent) {
     e.stopPropagation()
-    navigator.clipboard.writeText(item.title)
+    navigator.clipboard?.writeText(item.title).catch(() => {})
     setCopied(true)
     if (copyTimer.current) clearTimeout(copyTimer.current)
     copyTimer.current = setTimeout(() => setCopied(false), 1500)
@@ -57,6 +57,8 @@ export default function NewsCard({ item, read, bookmarked, onRead, onBookmark, f
   return (
     <article
       onClick={handleClick}
+      role="link" tabIndex={0} aria-label={item.title}
+      onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) handleClick() }}
       className={`group relative flex flex-col cursor-pointer select-none transition-colors duration-150 ${sweep ? 'news-fresh' : ''}`}
       onAnimationEnd={(e) => { if (e.animationName === 'fresh-glow') onSwept?.(item.id) }}
       style={{
