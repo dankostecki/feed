@@ -367,3 +367,6 @@ input::placeholder { color: var(--text-dim); }
 @media (prefers-reduced-motion: reduce) {
   .news-fresh .fresh-sheen { display: none; }
 }
+
+/* Keyboard focus on cards */
+article[role="link"]:focus-visible { outline: 2px solid var(--src-ECB); outline-offset: 1px; }

@@ -32,6 +32,9 @@ function text(v: unknown): string {
   return ''
 }
 
+// Feeds are untrusted: only web links are passed on (never javascript:, data: and the like)
+const safeLink = (s: string): string => (/^https?:\/\//i.test(s) ? s : '')
+
 function toDate(s: string): Date {
   const d = s ? new Date(s) : new Date(0)
   return isNaN(d.getTime()) ? new Date(0) : d
@@ -61,7 +64,7 @@ export function parseFeedXml(xml: string, config: FeedConfig): NewsItem[] {
       const title = suffixTitle(text(it.title), config)
       if (!title) continue
       const enclosure = asArray(it.enclosure)[0]
-      const link = text(asArray(it.link)[0]) || (enclosure ? String(enclosure['@_url'] ?? '') : '')
+      const link = safeLink(text(asArray(it.link)[0]) || (enclosure ? String(enclosure['@_url'] ?? '') : ''))
       items.push({
         id: makeId(config, link || title),
         title, link,
@@ -80,7 +83,7 @@ export function parseFeedXml(xml: string, config: FeedConfig): NewsItem[] {
     if (!title) continue
     const links = asArray(en.link)
     const linkEl = links.find((l) => l['@_rel'] === 'alternate') ?? links.find((l) => l['@_href']) ?? links[0]
-    const link = linkEl ? String(linkEl['@_href'] ?? text(linkEl)) : ''
+    const link = safeLink(linkEl ? String(linkEl['@_href'] ?? text(linkEl)) : '')
     items.push({
       id: makeId(config, link || title),
       title, link,

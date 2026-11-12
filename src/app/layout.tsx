@@ -8,7 +8,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'Hyperliquid TradFi Terminal',
-  description: 'TradFi quotes from Hyperliquid (indices, commodities, FX, crypto) and a live news feed: FED, ECB, NBP, Reuters, Bloomberg, Stooq, Axios',
+  description: 'TradFi quotes from Hyperliquid (indices, commodities, FX, crypto) and a live news feed: FED, ECB, NBP, Reuters, Bloomberg, Stooq, Axios, Seeking Alpha',
+  robots: { index: false, follow: false }, // personal tool: keep it out of search engines
   icons: { icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>" },
 }
 

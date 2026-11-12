@@ -15,6 +15,7 @@ interface Ranking { hours: number; generatedAt: string; count: number; top: Rank
 // The whole ranking of a window is kept; ?exclude only filters it afterwards, so it never causes another upstream call
 const memo = new Map<number, { at: number; generatedAt: string; ranked: RankedHeadline[] }>()
 const SOURCES = new Set(FEEDS.map((f) => f.source))
+const inflight = new Map<number, Promise<{ at: number; generatedAt: string; ranked: RankedHeadline[] }>>() // simultaneous requests share one upstream call
 
 // GET /api/top?hours=4|8|24 → top headlines of that window, ranked server-side (TypeSafe Jev).
 // The server builds the request from its own RSS fetch, so callers cannot make it
@@ -37,12 +38,19 @@ export async function GET(req: Request) {
   if (hit && Date.now() - hit.at < CACHE_S * 1000) return ok(view(hit), CACHE_S - Math.floor((Date.now() - hit.at) / 1000))
 
   try {
-    const now = new Date()
-    const jevReq = buildJevRequest(await loadAllItems(), hours, now)
-    const ranked = jevReq.count === 0 ? [] : (await rankWithJev(jevReq)).ranked
-    const entry = { at: Date.now(), generatedAt: now.toISOString(), ranked }
-    memo.set(hours, entry)
-    return ok(view(entry), CACHE_S)
+    let job = inflight.get(hours)
+    if (!job) {
+      job = (async () => {
+        const now = new Date()
+        const jevReq = buildJevRequest(await loadAllItems(), hours, now)
+        const ranked = jevReq.count === 0 ? [] : (await rankWithJev(jevReq)).ranked
+        const entry = { at: Date.now(), generatedAt: now.toISOString(), ranked }
+        memo.set(hours, entry)
+        return entry
+      })().finally(() => inflight.delete(hours))
+      inflight.set(hours, job)
+    }
+    return ok(view(await job), CACHE_S)
   } catch (e) {
     const err = e instanceof JevError ? e : new JevError('upstream', e instanceof Error ? e.message : 'Unknown error')
     console.error('top news ranking failed:', err.code, err.message)
