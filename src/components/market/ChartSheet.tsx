@@ -20,6 +20,8 @@ export default function ChartSheet({ inst, coin, price, onClose }: Props) {
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const [interval, setInterval] = useState<IntervalKey>('1h')
   const [loading, setLoading] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const open = inst != null
 
   // New instrument → back to 1H
@@ -42,7 +44,7 @@ export default function ChartSheet({ inst, coin, price, onClose }: Props) {
     if (!inst) return
     let cancelled = false
     const cfg = INTERVALS.find((i) => i.key === interval)!
-    setLoading(true)
+    setLoading(true); setFailed(false)
     ;(async () => {
       try {
         if (!chartRef.current && boxRef.current) {
@@ -76,14 +78,23 @@ export default function ChartSheet({ inst, coin, price, onClose }: Props) {
           open: parseFloat(c.o), high: parseFloat(c.h), low: parseFloat(c.l), close: parseFloat(c.c),
         })))
         chartRef.current?.timeScale().fitContent()
+        try { sessionStorage.removeItem('cbt:chart-reload') } catch {}
       } catch (e) {
         console.error('Chart load error:', e)
+        if (cancelled) return
+        // After a new deployment an open tab still points at the old chart code, which is gone: reload once to get the new one
+        const stale = e instanceof Error && /ChunkLoadError|Loading chunk|dynamically imported module|Importing a module script failed/i.test(`${e.name} ${e.message}`)
+        let reloaded = true
+        try { reloaded = sessionStorage.getItem('cbt:chart-reload') === '1'; if (stale && !reloaded) sessionStorage.setItem('cbt:chart-reload', '1') } catch {}
+        if (stale && !reloaded) { window.location.reload(); return }
+        seriesRef.current?.setData([])
+        setFailed(true)
       } finally {
         if (!cancelled) setLoading(false)
       }
     })()
     return () => { cancelled = true }
-  }, [inst, coin, interval])
+  }, [inst, coin, interval, attempt])
 
   return (
     <>
@@ -105,6 +116,12 @@ export default function ChartSheet({ inst, coin, price, onClose }: Props) {
         </div>
         <div className={s.chartBox} ref={boxRef}>
           {loading && <div className={s.loading}>Loading...</div>}
+          {failed && !loading && (
+            <div className={s.loading} style={{ pointerEvents: 'auto' }}>
+              Chart not available.{' '}
+              <button onClick={() => setAttempt((n) => n + 1)} style={{ color: '#ff9900', textDecoration: 'underline', marginLeft: 6 }}>RETRY</button>
+            </div>
+          )}
         </div>
       </div>
     </>
